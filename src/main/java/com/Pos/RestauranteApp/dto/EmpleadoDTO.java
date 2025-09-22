@@ -1,5 +1,7 @@
 package com.Pos.RestauranteApp.dto;
 
+import com.Pos.RestauranteApp.model.Empleado;
+
 public class EmpleadoDTO {
     private Long idEmpleado;
     private String nombre;
@@ -14,6 +16,7 @@ public class EmpleadoDTO {
         this.usuario = usuario;
         this.rolNombre = rolNombre;
     }
+
 // getters y setters
 
     public String getRolNombre() {

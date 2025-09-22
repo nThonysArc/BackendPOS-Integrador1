@@ -1,6 +1,6 @@
 package com.Pos.RestauranteApp.service;
 
-
+import com.Pos.RestauranteApp.dto.EmpleadoDTO;
 import com.Pos.RestauranteApp.model.Empleado;
 import com.Pos.RestauranteApp.repository.EmpleadoRepository;
 import org.springframework.stereotype.Service;
@@ -10,6 +10,16 @@ import java.util.Optional;
 
 @Service
 public class EmpleadoService {
+
+    public EmpleadoDTO convertirADTO(Empleado empleado) {
+        return new EmpleadoDTO(
+                empleado.getIdEmpleado(),
+                empleado.getNombre(),
+                empleado.getDni(),
+                empleado.getUsuario(),
+                empleado.getRol().getNombre()
+        );
+    }
     private final EmpleadoRepository empleadoRepository;
 
     public EmpleadoService(EmpleadoRepository empleadoRepository) {
@@ -35,5 +45,7 @@ public class EmpleadoService {
     public Optional<Empleado> buscarPorUsuario(String usuario) {
         return empleadoRepository.findByUsuario(usuario);
     }
+
+
 }
 
