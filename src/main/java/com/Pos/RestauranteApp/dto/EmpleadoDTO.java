@@ -1,13 +1,11 @@
 package com.Pos.RestauranteApp.dto;
 
-import com.Pos.RestauranteApp.model.Empleado;
-
 public class EmpleadoDTO {
     private Long idEmpleado;
     private String nombre;
     private String dni;
     private String usuario;
-    private String rolNombre; // en lugar de devolver todo el objeto Rol
+    private String rolNombre;
 
     public EmpleadoDTO(Long idEmpleado, String nombre, String dni, String usuario, String rolNombre) {
         this.idEmpleado = idEmpleado;
