@@ -5,7 +5,7 @@ public class EmpleadoDTO {
     private String nombre;
     private String dni;
     private String usuario;
-    private String rolNombre; // en lugar de devolver todo el objeto Rol
+    private String rolNombre;
 
     public EmpleadoDTO(Long idEmpleado, String nombre, String dni, String usuario, String rolNombre) {
         this.idEmpleado = idEmpleado;
@@ -14,6 +14,7 @@ public class EmpleadoDTO {
         this.usuario = usuario;
         this.rolNombre = rolNombre;
     }
+
 // getters y setters
 
     public String getRolNombre() {

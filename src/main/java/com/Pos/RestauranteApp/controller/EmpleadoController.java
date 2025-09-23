@@ -1,5 +1,6 @@
 package com.Pos.RestauranteApp.controller;
 
+import com.Pos.RestauranteApp.dto.EmpleadoDTO;
 import com.Pos.RestauranteApp.model.Empleado;
 import com.Pos.RestauranteApp.service.EmpleadoService;
 import org.springframework.web.bind.annotation.*;
@@ -17,14 +18,18 @@ public class EmpleadoController {
     }
 
     @GetMapping
-    public List<Empleado> listarTodos() {
-        return empleadoService.listarTodos();
+    public List<EmpleadoDTO> listarTodos() {
+        return empleadoService.listarTodos()
+                .stream()
+                .map(empleadoService::convertirADTO)
+                .toList();
     }
 
     @GetMapping("/{id}")
-    public Empleado obtenerPorId(@PathVariable Long id) {
-        return empleadoService.buscarPorId(id)
+    public EmpleadoDTO obtenerPorId(@PathVariable Long id) {
+        Empleado empleado = empleadoService.buscarPorId(id)
                 .orElseThrow(() -> new RuntimeException("Empleado no encontrado"));
+        return empleadoService.convertirADTO(empleado);
     }
 
     @PostMapping
@@ -49,4 +54,5 @@ public class EmpleadoController {
         empleadoService.eliminar(id);
     }
 }
+
 
