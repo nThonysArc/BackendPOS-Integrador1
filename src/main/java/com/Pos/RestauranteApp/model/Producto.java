@@ -16,7 +16,10 @@ public class Producto {
     private Double precio;
     private Boolean activo = true;
 
-    private long idCategoria;
+    @ManyToOne
+    @JoinColumn(name = "id_categoria", nullable = false)
+    private Categoria categoria;
+
 
     // Getters y Setters
     public Long getIdProducto() { return idProducto; }
@@ -34,6 +37,11 @@ public class Producto {
     public Boolean getActivo() { return activo; }
     public void setActivo(Boolean activo) { this.activo = activo; }
 
-    public long getIdCategoria() { return idCategoria; }
-    public void setIdCategoria(long idCategoria) { this.idCategoria= idCategoria; }
+    public Categoria getCategoria() {
+        return categoria;
+    }
+
+    public void setCategoria(Categoria categoria) {
+        this.categoria = categoria;
+    }
 }
