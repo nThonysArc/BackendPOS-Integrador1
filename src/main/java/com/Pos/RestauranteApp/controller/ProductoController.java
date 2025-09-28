@@ -1,5 +1,6 @@
 package com.Pos.RestauranteApp.controller;
 
+import com.Pos.RestauranteApp.dto.ProductoDTO;
 import com.Pos.RestauranteApp.model.Producto;
 import com.Pos.RestauranteApp.service.ProductoService;
 import org.springframework.web.bind.annotation.*;
@@ -17,12 +18,12 @@ public class ProductoController {
     }
 
     @GetMapping
-    public List<Producto> listar() {
+    public List<ProductoDTO> listar() {
         return productoService.listar();
     }
 
     @GetMapping("/{id}")
-    public Producto obtenerPorId(@PathVariable Long id) {
+    public ProductoDTO obtenerPorId(@PathVariable Long id) {
         return productoService.obtenerPorId(id).orElse(null);
     }
 
