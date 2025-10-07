@@ -7,14 +7,18 @@ public class ProductoDTO {
     private String descripcion;
     private Double precio;
     private String categoriaNombre;
+    private Long idCategoria; // para poder crear y actualizar
 
+    //Contructor vacio
+    public ProductoDTO() {}
     // Constructor
-    public ProductoDTO(Long idProducto, String nombre, String descripcion, Double precio, String categoriaNombre) {
+    public ProductoDTO(Long idProducto, String nombre, String descripcion, Double precio, String categoriaNombre, Long idCategoria) {
         this.idProducto = idProducto;
         this.nombre = nombre;
         this.descripcion = descripcion;
         this.precio = precio;
         this.categoriaNombre = categoriaNombre;
+        this.idCategoria = idCategoria;
     }
 
     // Getters y setters
@@ -56,5 +60,13 @@ public class ProductoDTO {
 
     public void setCategoriaNombre(String categoriaNombre) {
         this.categoriaNombre = categoriaNombre;
+    }
+
+    public Long getIdCategoria() {
+        return idCategoria;
+    }
+
+    public void setIdCategoria(Long idCategoria) {
+        this.idCategoria = idCategoria;
     }
 }

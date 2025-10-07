@@ -6,55 +6,35 @@ public class EmpleadoDTO {
     private String dni;
     private String usuario;
     private String rolNombre;
+    private Long idRol;
 
-    public EmpleadoDTO(Long idEmpleado, String nombre, String dni, String usuario, String rolNombre) {
+    public EmpleadoDTO() {}
+
+    public EmpleadoDTO(Long idEmpleado, String nombre, String dni, String usuario, String rolNombre, Long idRol) {
         this.idEmpleado = idEmpleado;
         this.nombre = nombre;
         this.dni = dni;
         this.usuario = usuario;
         this.rolNombre = rolNombre;
+        this.idRol = idRol;
     }
 
-// getters y setters
+    // Getters y Setters
+    public Long getIdEmpleado() { return idEmpleado; }
+    public void setIdEmpleado(Long idEmpleado) { this.idEmpleado = idEmpleado; }
 
-    public String getRolNombre() {
-        return rolNombre;
-    }
+    public String getNombre() { return nombre; }
+    public void setNombre(String nombre) { this.nombre = nombre; }
 
-    public void setRolNombre(String rolNombre) {
-        this.rolNombre = rolNombre;
-    }
+    public String getDni() { return dni; }
+    public void setDni(String dni) { this.dni = dni; }
 
-    public String getUsuario() {
-        return usuario;
-    }
+    public String getUsuario() { return usuario; }
+    public void setUsuario(String usuario) { this.usuario = usuario; }
 
-    public void setUsuario(String usuario) {
-        this.usuario = usuario;
-    }
+    public String getRolNombre() { return rolNombre; }
+    public void setRolNombre(String rolNombre) { this.rolNombre = rolNombre; }
 
-    public String getDni() {
-        return dni;
-    }
-
-    public void setDni(String dni) {
-        this.dni = dni;
-    }
-
-    public String getNombre() {
-        return nombre;
-    }
-
-    public void setNombre(String nombre) {
-        this.nombre = nombre;
-    }
-
-    public Long getIdEmpleado() {
-        return idEmpleado;
-    }
-
-    public void setIdEmpleado(Long idEmpleado) {
-        this.idEmpleado = idEmpleado;
-    }
+    public Long getIdRol() { return idRol; }
+    public void setIdRol(Long idRol) { this.idRol = idRol; }
 }
-

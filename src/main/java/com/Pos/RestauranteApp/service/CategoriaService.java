@@ -1,5 +1,6 @@
 package com.Pos.RestauranteApp.service;
 
+import com.Pos.RestauranteApp.dto.CategoriaDTO;
 import com.Pos.RestauranteApp.model.Categoria;
 import com.Pos.RestauranteApp.repository.CategoriaRepository;
 import org.springframework.stereotype.Service;
@@ -37,6 +38,18 @@ public class CategoriaService {
 
     public void eliminarCategoria(Long id) {
         categoriaRepository.deleteById(id);
+    }
+
+    public CategoriaDTO convertirADTO(Categoria categoria) {
+        Long idPadre = (categoria.getCategoriaPadre() != null)
+                ? categoria.getCategoriaPadre().getIdCategoria()
+                : null;
+
+        return new CategoriaDTO(
+                categoria.getIdCategoria(),
+                categoria.getNombre(),
+                idPadre
+        );
     }
 }
 

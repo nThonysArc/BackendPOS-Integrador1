@@ -1,8 +1,8 @@
 package com.Pos.RestauranteApp.controller;
 
 import com.Pos.RestauranteApp.dto.EmpleadoDTO;
-import com.Pos.RestauranteApp.model.Empleado;
 import com.Pos.RestauranteApp.service.EmpleadoService;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -19,40 +19,36 @@ public class EmpleadoController {
 
     @GetMapping
     public List<EmpleadoDTO> listarTodos() {
-        return empleadoService.listarTodos()
-                .stream()
-                .map(empleadoService::convertirADTO)
-                .toList();
+        return empleadoService.listarTodos();
     }
 
     @GetMapping("/{id}")
     public EmpleadoDTO obtenerPorId(@PathVariable Long id) {
-        Empleado empleado = empleadoService.buscarPorId(id)
-                .orElseThrow(() -> new RuntimeException("Empleado no encontrado"));
-        return empleadoService.convertirADTO(empleado);
+        return empleadoService.buscarPorId(id)
+                .orElseThrow(() -> new RecursoNoEncontradoException("Empleado no encontrado"));
     }
 
     @PostMapping
-    public Empleado crear(@RequestBody Empleado empleado) {
-        return empleadoService.guardar(empleado);
+    public EmpleadoDTO crear(@RequestBody EmpleadoDTO empleadoDTO) {
+        return empleadoService.guardar(empleadoDTO);
     }
 
     @PutMapping("/{id}")
-    public Empleado actualizar(@PathVariable Long id, @RequestBody Empleado empleado) {
-        Empleado existente = empleadoService.buscarPorId(id)
-                .orElseThrow(() -> new RuntimeException("Empleado no encontrado"));
-        existente.setNombre(empleado.getNombre());
-        existente.setDni(empleado.getDni());
-        existente.setUsuario(empleado.getUsuario());
-        existente.setContrasena(empleado.getContrasena());
-        existente.setRol(empleado.getRol());
-        return empleadoService.guardar(existente);
+    public EmpleadoDTO actualizar(@PathVariable Long id, @RequestBody EmpleadoDTO empleadoDTO) {
+        empleadoDTO.setIdEmpleado(id);
+        return empleadoService.guardar(empleadoDTO);
     }
 
     @DeleteMapping("/{id}")
     public void eliminar(@PathVariable Long id) {
         empleadoService.eliminar(id);
     }
+
+
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    class RecursoNoEncontradoException extends RuntimeException {
+        public RecursoNoEncontradoException(String mensaje) {
+            super(mensaje);
+        }
+    }
 }
-
-
