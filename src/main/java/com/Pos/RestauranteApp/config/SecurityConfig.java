@@ -58,17 +58,17 @@ public class SecurityConfig {
                 .authorizeHttpRequests(authz -> authz
                         // Permitimos el login
                         .requestMatchers("/api/auth/**").permitAll()
-
-                        // ⬇️ RECOMENDADO: Permitir ver la UI de Swagger (se añade)
-                        // .requestMatchers("/v3/api-docs/**", "/swagger-ui/**").permitAll()
+                        // Permitir el acceso a la UI y la definición de la API de Swagger
+                        .requestMatchers(
+                                "/v3/api-docs/**",
+                                "/swagger-ui/**",
+                                "/swagger-ui.html"
+                        ).permitAll()
 
                         // Todas las demás peticiones requieren autenticación
                         .anyRequest().authenticated()
                 )
-                // Le decimos a Spring que use nuestro proveedor
                 .authenticationProvider(authenticationProvider())
-                // se añade el FILTRO JWT
-                // Se ejecutará antes que el filtro de login por defecto
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
