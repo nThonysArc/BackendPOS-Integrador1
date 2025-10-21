@@ -4,6 +4,7 @@ import com.Pos.RestauranteApp.dto.MesaDTO;
 import com.Pos.RestauranteApp.model.Mesa;
 import com.Pos.RestauranteApp.repository.MesaRepository;
 import org.springframework.stereotype.Service;
+import com.Pos.RestauranteApp.exception.ResourceNotFoundException;
 
 import java.util.List;
 import java.util.Optional;
@@ -64,7 +65,7 @@ public class MesaService {
     // 🔹 Cambiar estado (DISPONIBLE / OCUPADA)
     public MesaDTO cambiarEstado(Long id, String nuevoEstado) {
         Mesa mesa = mesaRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Mesa no encontrada"));
+                .orElseThrow(() -> new ResourceNotFoundException("Mesa no encontrada con id: " + id));
 
         mesa.setEstado(Mesa.EstadoMesa.valueOf(nuevoEstado.toUpperCase()));
         return convertirADTO(mesaRepository.save(mesa));

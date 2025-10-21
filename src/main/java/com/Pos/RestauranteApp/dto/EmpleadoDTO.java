@@ -1,12 +1,30 @@
 package com.Pos.RestauranteApp.dto;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 
 public class EmpleadoDTO {
     private Long idEmpleado;
+
+    @NotBlank(message = "El nombre no puede estar vacío")
     private String nombre;
+
+    @NotBlank(message = "El DNI no puede estar vacío")
+    @Size(min = 8, max = 15, message = "El DNI debe tener entre 8 y 15 caracteres")
     private String dni;
+
+    @NotBlank(message = "El nombre de usuario no puede estar vacío")
     private String usuario;
+
     private String rolNombre;
+
+    @NotNull(message = "El idRol no puede ser nulo")
     private Long idRol;
+
+    // Dejamos que la contraseña sea opcional en el DTO.
+    // El servicio ya valida si es nueva o es una actualización.
+    @Size(min = 6, message = "La contraseña debe tener al menos 6 caracteres")
+    private String contrasena;
 
     public EmpleadoDTO() {}
 
@@ -37,4 +55,13 @@ public class EmpleadoDTO {
 
     public Long getIdRol() { return idRol; }
     public void setIdRol(Long idRol) { this.idRol = idRol; }
+
+    public String getContrasena() {
+        return contrasena;
+    }
+
+    public void setContrasena(String contrasena) {
+        this.contrasena = contrasena;
+    }
+
 }

@@ -4,6 +4,8 @@ import com.Pos.RestauranteApp.dto.MesaDTO;
 import com.Pos.RestauranteApp.service.MesaService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import jakarta.validation.Valid;
+import com.Pos.RestauranteApp.exception.ResourceNotFoundException;
 
 import java.util.List;
 
@@ -27,32 +29,30 @@ public class MesaController {
     // 🔹 Obtener mesa por ID
     @GetMapping("/{id}")
     public ResponseEntity<MesaDTO> obtenerPorId(@PathVariable Long id) {
-        return mesaService.obtenerPorId(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+        MesaDTO mesa = mesaService.obtenerPorId(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Mesa no encontrada con id: " + id));
+        return ResponseEntity.ok(mesa);
     }
 
-    // 🔹 Crear nueva mesa
     @PostMapping
-    public ResponseEntity<MesaDTO> crear(@RequestBody MesaDTO mesaDTO) {
+    public ResponseEntity<MesaDTO> crear(@Valid @RequestBody MesaDTO mesaDTO) {
         return ResponseEntity.ok(mesaService.guardar(mesaDTO));
     }
 
-    // 🔹 Actualizar mesa
     @PutMapping("/{id}")
-    public ResponseEntity<MesaDTO> actualizar(@PathVariable Long id, @RequestBody MesaDTO mesaDTO) {
+    public ResponseEntity<MesaDTO> actualizar(@PathVariable Long id, @Valid @RequestBody MesaDTO mesaDTO) {
         mesaDTO.setIdMesa(id);
         return ResponseEntity.ok(mesaService.guardar(mesaDTO));
     }
 
-    // 🔹 Eliminar mesa
+    // Eliminar mesa
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> eliminar(@PathVariable Long id) {
         mesaService.eliminar(id);
         return ResponseEntity.noContent().build();
     }
 
-    // 🔹 Cambiar estado de mesa (por ejemplo, DISPONIBLE → OCUPADA)
+    // Cambiar estado de mesa (por ejemplo, DISPONIBLE → OCUPADA)
     @PutMapping("/{id}/estado/{nuevoEstado}")
     public ResponseEntity<MesaDTO> cambiarEstado(
             @PathVariable Long id,

@@ -4,6 +4,8 @@ import com.Pos.RestauranteApp.dto.PedidoMesaDTO;
 import com.Pos.RestauranteApp.service.PedidoMesaService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import jakarta.validation.Valid;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 import java.util.List;
 
@@ -20,13 +22,15 @@ public class PedidoMesaController {
 
     //  Listar todos los pedidos
     @GetMapping
+    @PreAuthorize("hasAnyRole('ADMIN', 'MESERO', 'CAJERO')")
     public ResponseEntity<List<PedidoMesaDTO>> listarPedidos() {
         List<PedidoMesaDTO> pedidos = pedidoMesaService.listar();
         return ResponseEntity.ok(pedidos);
     }
 
-    //  Obtener pedido por ID
+    // Solo Meseros o Admins pueden ver un pedido
     @GetMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MESERO', 'CAJERO')")
     public ResponseEntity<PedidoMesaDTO> obtenerPedido(@PathVariable Long id) {
         PedidoMesaDTO pedido = pedidoMesaService.obtenerPorId(id);
         return ResponseEntity.ok(pedido);
@@ -34,13 +38,15 @@ public class PedidoMesaController {
 
     //  Crear nuevo pedido
     @PostMapping
-    public ResponseEntity<PedidoMesaDTO> crearPedido(@RequestBody PedidoMesaDTO pedidoDTO) {
+    @PreAuthorize("hasAnyRole('ADMIN', 'MESERO')")
+    public ResponseEntity<PedidoMesaDTO> crearPedido(@Valid @RequestBody PedidoMesaDTO pedidoDTO) {
         PedidoMesaDTO nuevoPedido = pedidoMesaService.guardar(pedidoDTO);
         return ResponseEntity.ok(nuevoPedido);
     }
 
     //  Eliminar pedido (también libera la mesa)
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN', 'MESERO')")
     public ResponseEntity<Void> eliminarPedido(@PathVariable Long id) {
         pedidoMesaService.eliminar(id);
         return ResponseEntity.noContent().build();
@@ -48,6 +54,7 @@ public class PedidoMesaController {
 
     //  Cerrar pedido (sin eliminarlo)
     @PutMapping("/{id}/cerrar")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MESERO', 'CAJERO')")
     public ResponseEntity<PedidoMesaDTO> cerrarPedido(@PathVariable Long id) {
         PedidoMesaDTO pedidoCerrado = pedidoMesaService.cerrarPedido(id);
         return ResponseEntity.ok(pedidoCerrado);

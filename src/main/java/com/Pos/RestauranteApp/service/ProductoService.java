@@ -5,6 +5,7 @@ import com.Pos.RestauranteApp.model.Producto;
 import com.Pos.RestauranteApp.repository.CategoriaRepository;
 import com.Pos.RestauranteApp.repository.ProductoRepository;
 import org.springframework.stereotype.Service;
+import com.Pos.RestauranteApp.exception.ResourceNotFoundException;
 
 import java.util.List;
 import java.util.Optional;
@@ -42,10 +43,11 @@ public class ProductoService {
 
         // buscar la categoría por id
         Categoria categoria = categoriaRepository.findById(dto.getIdCategoria())
-                .orElseThrow(() -> new RuntimeException("Categoría no encontrada"));
+                .orElseThrow(() -> new ResourceNotFoundException("Categoría no encontrada con id: " + dto.getIdCategoria()));
         producto.setCategoria(categoria);
 
         return producto;
+
     }
 
     // metodo para devolver DTOs
@@ -57,7 +59,9 @@ public class ProductoService {
     }
 
     public Optional<ProductoDTO> obtenerPorId(Long id) {
-        return productoRepository.findById(id).map(this::convertirADTO);
+        return Optional.of(productoRepository.findById(id)
+                .map(this::convertirADTO)
+                .orElseThrow(() -> new ResourceNotFoundException("Producto no encontrado con id: " + id)));
     }
 
     public ProductoDTO guardar(ProductoDTO dto) {

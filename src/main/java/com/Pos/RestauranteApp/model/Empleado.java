@@ -1,9 +1,15 @@
 package com.Pos.RestauranteApp.model;
+
 import jakarta.persistence.*;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
+import java.util.Collection;
+import java.util.List;
 
 @Entity
 @Table(name = "empleados")
-public class Empleado {
+public class Empleado implements UserDetails {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -37,7 +43,7 @@ public class Empleado {
         this.rol = rol;
     }
 
-    // Getters y setters
+    // Getters y setters (Los que ya tenías)
     public Long getIdEmpleado() { return idEmpleado; }
     public void setIdEmpleado(Long idEmpleado) { this.idEmpleado = idEmpleado; }
 
@@ -55,5 +61,40 @@ public class Empleado {
 
     public Rol getRol() { return rol; }
     public void setRol(Rol rol) { this.rol = rol; }
-}
 
+
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return List.of(new SimpleGrantedAuthority("ROLE_" + rol.getNombre()));
+    }
+
+    @Override
+    public String getPassword() {
+        return this.contrasena;
+    }
+
+    @Override
+    public String getUsername() {
+        return this.usuario;
+    }
+
+    @Override
+    public boolean isAccountNonExpired() {
+        return true; // Asumimos que la cuenta nunca expira
+    }
+
+    @Override
+    public boolean isAccountNonLocked() {
+        return true; // Asumimos que la cuenta nunca se bloquea
+    }
+
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return true; // Asumimos que las credenciales nunca expiran
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return true; // Asumimos que el empleado está siempre habilitado
+    }
+}

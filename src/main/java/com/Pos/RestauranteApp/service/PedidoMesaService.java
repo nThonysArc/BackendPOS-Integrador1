@@ -4,10 +4,13 @@ import com.Pos.RestauranteApp.dto.DetallePedidoMesaDTO;
 import com.Pos.RestauranteApp.dto.PedidoMesaDTO;
 import com.Pos.RestauranteApp.model.*;
 import com.Pos.RestauranteApp.repository.*;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import com.Pos.RestauranteApp.exception.ResourceNotFoundException;
+import org.springframework.security.core.userdetails.UserDetails;
 
 @Service
 public class PedidoMesaService {
@@ -58,20 +61,27 @@ public class PedidoMesaService {
         PedidoMesa pedido = new PedidoMesa();
         pedido.setIdPedidoMesa(dto.getIdPedidoMesa());
         pedido.setMesa(mesaRepository.findById(dto.getIdMesa())
-                .orElseThrow(() -> new RuntimeException("Mesa no encontrada")));
-        pedido.setMesero(empleadoRepository.findById(dto.getIdMesero())
-                .orElseThrow(() -> new RuntimeException("Mesero no encontrado")));
-        pedido.setEstado(PedidoMesa.EstadoPedido.valueOf(dto.getEstado()));
+                .orElseThrow(() -> new ResourceNotFoundException("Mesa no encontrada con id: " + dto.getIdMesa())));
+        // 1. Obtener el usuario autenticado
+        String usuarioLogueado = SecurityContextHolder.getContext().getAuthentication().getName();
 
-        // Crear los detalles
+        // 2. Buscar al empleado por su nombre de 'usuario'
+        Empleado meseroLogueado = empleadoRepository.findByUsuario(usuarioLogueado)
+                .orElseThrow(() -> new ResourceNotFoundException("Usuario (Mesero) no encontrado: " + usuarioLogueado));
+        // 3. Asignar el empleado logueado
+        pedido.setMesero(meseroLogueado);
+
+        pedido.setEstado(PedidoMesa.EstadoPedido.valueOf(dto.getEstado()));
         List<DetallePedidoMesa> detalles = dto.getDetalles().stream().map(d -> {
             DetallePedidoMesa detalle = new DetallePedidoMesa();
             detalle.setPedidoMesa(pedido);
+
             detalle.setProducto(productoRepository.findById(d.getIdProducto())
-                    .orElseThrow(() -> new RuntimeException("Producto no encontrado")));
+                    .orElseThrow(() -> new ResourceNotFoundException("Producto no encontrado con id: " + d.getIdProducto())));
             detalle.setCantidad(d.getCantidad());
             detalle.setPrecioUnitario(d.getPrecioUnitario());
             return detalle;
+
         }).collect(Collectors.toList());
 
         pedido.setDetalles(detalles);
@@ -92,23 +102,21 @@ public class PedidoMesaService {
     public PedidoMesaDTO obtenerPorId(Long id) {
         return pedidoMesaRepository.findById(id)
                 .map(this::convertirADTO)
-                .orElseThrow(() -> new RuntimeException("Pedido no encontrado"));
+                .orElseThrow(() -> new ResourceNotFoundException("Pedido no encontrado con id: " + id));
     }
 
     public PedidoMesaDTO guardar(PedidoMesaDTO dto) {
         PedidoMesa pedido = convertirAEntidad(dto);
 
-        // Guarda primero el pedido sin los detalles (por seguridad)
         pedido.setDetalles(null);
         PedidoMesa pedidoGuardado = pedidoMesaRepository.save(pedido);
 
-        // Luego asigna los detalles al pedido guardado
         pedidoGuardado.setDetalles(
                 dto.getDetalles().stream().map(d -> {
                     DetallePedidoMesa detalle = new DetallePedidoMesa();
                     detalle.setPedidoMesa(pedidoGuardado);
                     detalle.setProducto(productoRepository.findById(d.getIdProducto())
-                            .orElseThrow(() -> new RuntimeException("Producto no encontrado")));
+                            .orElseThrow(() -> new ResourceNotFoundException("Producto no encontrado con id: " + d.getIdProducto())));
                     detalle.setCantidad(d.getCantidad());
                     detalle.setPrecioUnitario(d.getPrecioUnitario());
                     return detalle;

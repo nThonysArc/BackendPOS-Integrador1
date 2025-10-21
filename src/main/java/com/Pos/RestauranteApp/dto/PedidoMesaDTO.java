@@ -3,16 +3,28 @@ package com.Pos.RestauranteApp.dto;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
+import java.time.LocalDateTime;
+import java.util.List;
+
 public class PedidoMesaDTO {
 
     private Long idPedidoMesa;
+
+    @NotNull(message = "El idMesa no puede ser nulo")
     private Long idMesa;
+
     private Integer numeroMesa;
-    private Long idMesero;
+
     private String nombreMesero;
     private LocalDateTime fechaHoraCreacion;
     private String estado;
     private Double total;
+
+    @Valid
+    @NotEmpty(message = "El pedido debe tener al menos un detalle (producto)")
     private List<DetallePedidoMesaDTO> detalles;
 
     public PedidoMesaDTO() {}
@@ -24,7 +36,6 @@ public class PedidoMesaDTO {
         this.idPedidoMesa = idPedidoMesa;
         this.idMesa = idMesa;
         this.numeroMesa = numeroMesa;
-        this.idMesero = idMesero;
         this.nombreMesero = nombreMesero;
         this.fechaHoraCreacion = fechaHoraCreacion;
         this.estado = estado;
@@ -41,9 +52,6 @@ public class PedidoMesaDTO {
 
     public Integer getNumeroMesa() { return numeroMesa; }
     public void setNumeroMesa(Integer numeroMesa) { this.numeroMesa = numeroMesa; }
-
-    public Long getIdMesero() { return idMesero; }
-    public void setIdMesero(Long idMesero) { this.idMesero = idMesero; }
 
     public String getNombreMesero() { return nombreMesero; }
     public void setNombreMesero(String nombreMesero) { this.nombreMesero = nombreMesero; }

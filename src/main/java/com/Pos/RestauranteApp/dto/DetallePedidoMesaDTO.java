@@ -1,12 +1,25 @@
 package com.Pos.RestauranteApp.dto;
 
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
+
 public class DetallePedidoMesaDTO {
 
     private Long idDetallePedidoMesa;
+
+    @NotNull(message = "El idProducto no puede ser nulo en un detalle")
     private Long idProducto;
+
     private String nombreProducto;
+
+    @NotNull(message = "La cantidad no puede ser nula")
+    @Positive(message = "La cantidad debe ser al menos 1")
     private Integer cantidad;
+
+    @NotNull(message = "El precio unitario no puede ser nulo")
+    @Positive(message = "El precio unitario debe ser positivo")
     private Double precioUnitario;
+
     private Double subtotal;
 
     public DetallePedidoMesaDTO() {}

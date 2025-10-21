@@ -1,13 +1,22 @@
 package com.Pos.RestauranteApp.dto;
 
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
+
 public class MesaDTO {
 
     private Long idMesa;
-    private Integer numeroMesa;
-    private Integer capacidad;
-    private String estado;
 
-    // Constructor vacío
+    @NotNull(message = "El número de mesa no puede ser nulo")
+    private Integer numeroMesa;
+
+    @NotNull(message = "La capacidad no puede ser nula")
+    @Positive(message = "La capacidad debe ser un número positivo")
+    private Integer capacidad;
+
+    @NotBlank(message = "El estado no puede estar vacío")
+    private String estado;
     public MesaDTO() {}
 
     // Constructor completo
