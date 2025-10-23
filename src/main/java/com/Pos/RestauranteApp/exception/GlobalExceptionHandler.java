@@ -11,6 +11,9 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.core.AuthenticationException;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -39,6 +42,18 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         body.put("message", "No tienes permiso para acceder a este recurso");
         body.put("path", request.getDescription(false).substring(4));
         return new ResponseEntity<>(body, HttpStatus.FORBIDDEN);
+    }
+
+    @ExceptionHandler({ BadCredentialsException.class, AuthenticationException.class }) // Captura credenciales malas y otros errores de autenticación
+    public ResponseEntity<Object> handleAuthenticationException(Exception ex, WebRequest request) {
+        Map<String, Object> body = new HashMap<>();
+        body.put("timestamp", System.currentTimeMillis());
+        body.put("status", HttpStatus.UNAUTHORIZED.value());
+        body.put("error", "Unauthorized");
+        body.put("message", "Credenciales inválidas o error de autenticación");
+        body.put("message", ex.getMessage());
+        body.put("path", request.getDescription(false).substring(4));
+        return new ResponseEntity<>(body, HttpStatus.UNAUTHORIZED); // Devolver 401
     }
 
     // 3. Manejador para errores de Validación (@Valid) (400)
