@@ -29,12 +29,11 @@ public class AuthController {
     public ResponseEntity<?> createAuthenticationToken(@RequestBody AuthRequest authRequest) {
         // 1. Autenticar al usuario
         authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(authRequest.getUsuario(), authRequest.getContrasena())
+                new UsernamePasswordAuthenticationToken(authRequest.getUsername(), authRequest.getPassword())
         );
 
         // 2. Si es exitoso, cargar los detalles del usuario
-        final UserDetails userDetails = userDetailsService.loadUserByUsername(authRequest.getUsuario());
-
+        final UserDetails userDetails = userDetailsService.loadUserByUsername(authRequest.getUsername());
         // 3. Generar el token JWT
         final String jwt = jwtService.generateToken(userDetails);
 

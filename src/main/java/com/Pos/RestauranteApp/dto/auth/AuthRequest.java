@@ -1,19 +1,20 @@
 package com.Pos.RestauranteApp.dto.auth;
-public class AuthRequest {
-    private String usuario;
-    private String contrasena;
 
-    // Getters y Setters
-    public String getUsuario() {
-        return usuario;
+public class AuthRequest {
+    private String username;
+    private String password;
+
+    // Getters y Setters actualizados
+    public String getUsername() {
+        return username;
     }
-    public void setUsuario(String usuario) {
-        this.usuario = usuario;
+    public void setUsername(String username) {
+        this.username = username;
     }
-    public String getContrasena() {
-        return contrasena;
+    public String getPassword() {
+        return password;
     }
-    public void setContrasena(String contrasena) {
-        this.contrasena = contrasena;
+    public void setPassword(String password) {
+        this.password = password;
     }
 }
