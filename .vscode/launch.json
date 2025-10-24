@@ -1,0 +1,23 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "java",
+      "name": "Ejecutar Backend POS",
+      "request": "launch",
+      // Esta es la clase principal de tu backend
+      "mainClass": "com.Pos.RestauranteApp.RestauranteAppApplication",
+      // Este es el nombre de tu proyecto en el pom.xml
+      "projectName": "RestauranteApp",
+
+      // ¡LO MÁS IMPORTANTE! Tus variables de Railway
+      "env": {
+        "DB_HOST": "shinkansen.proxy.rlwy.net",
+        "DB_PORT": "24049", 
+        "DB_NAME": "restaurante_pos",
+        "DB_USER": "root",
+        "DB_PASSWORD": "flMqQYZhqFDxGxmkHpkRihrBLDEzPrys"
+      }
+    }
+  ]
+}
