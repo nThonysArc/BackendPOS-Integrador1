@@ -3,6 +3,7 @@ package com.Pos.RestauranteApp.controller;
 import com.Pos.RestauranteApp.dto.CategoriaDTO;
 import com.Pos.RestauranteApp.model.Categoria;
 import com.Pos.RestauranteApp.service.CategoriaService;
+import jakarta.validation.Valid; // ⬅️ AÑADIDO
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -39,21 +40,19 @@ public class CategoriaController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    //  Crear una categoría (Solo Admin)
+    // --- MODIFICADO: Ahora acepta CategoriaDTO ---
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<CategoriaDTO> crearCategoria(@RequestBody Categoria categoria) {
-        // TODO: Deberías validar este DTO/Entidad también
-        Categoria nuevaCategoria = categoriaService.crearCategoria(categoria);
+    public ResponseEntity<CategoriaDTO> crearCategoria(@Valid @RequestBody CategoriaDTO categoriaDTO) {
+        Categoria nuevaCategoria = categoriaService.crearCategoria(categoriaDTO);
         return ResponseEntity.ok(categoriaService.convertirADTO(nuevaCategoria));
     }
 
-    //  Actualizar una categoría (Solo Admin)
+    // --- MODIFICADO: Ahora acepta CategoriaDTO ---
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<CategoriaDTO> actualizarCategoria(@PathVariable Long id, @RequestBody Categoria categoria) {
-        // TODO: Deberías validar este DTO/Entidad también
-        Categoria categoriaActualizada = categoriaService.actualizarCategoria(id, categoria);
+    public ResponseEntity<CategoriaDTO> actualizarCategoria(@PathVariable Long id, @Valid @RequestBody CategoriaDTO categoriaDTO) {
+        Categoria categoriaActualizada = categoriaService.actualizarCategoria(id, categoriaDTO);
         return ResponseEntity.ok(categoriaService.convertirADTO(categoriaActualizada));
     }
 
