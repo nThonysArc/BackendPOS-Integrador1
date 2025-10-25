@@ -1,8 +1,19 @@
 package com.Pos.RestauranteApp.model;
 
-import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import java.util.List;
+
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "pedidosmesa")
@@ -31,7 +42,11 @@ public class PedidoMesa {
     private List<DetallePedidoMesa> detalles;
 
     public enum EstadoPedido {
-        ABIERTO, EN_COCINA, CERRADO, CANCELADO
+        ABIERTO,
+        EN_COCINA, // <-- Podrías añadir este si quieres
+        LISTO_PARA_ENTREGAR, // <-- ESTADO NUEVO
+        CERRADO,
+        CANCELADO
     }
 
     // Getters y setters

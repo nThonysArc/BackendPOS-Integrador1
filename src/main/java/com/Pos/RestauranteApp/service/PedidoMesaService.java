@@ -1,16 +1,23 @@
 package com.Pos.RestauranteApp.service;
 
-import com.Pos.RestauranteApp.dto.DetallePedidoMesaDTO;
-import com.Pos.RestauranteApp.dto.PedidoMesaDTO;
-import com.Pos.RestauranteApp.model.*;
-import com.Pos.RestauranteApp.repository.*;
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
+
+import com.Pos.RestauranteApp.dto.DetallePedidoMesaDTO;
+import com.Pos.RestauranteApp.dto.PedidoMesaDTO;
 import com.Pos.RestauranteApp.exception.ResourceNotFoundException;
-import org.springframework.security.core.userdetails.UserDetails;
+import com.Pos.RestauranteApp.model.DetallePedidoMesa;
+import com.Pos.RestauranteApp.model.Empleado;
+import com.Pos.RestauranteApp.model.Mesa;
+import com.Pos.RestauranteApp.model.PedidoMesa;
+import com.Pos.RestauranteApp.model.PedidoMesa.EstadoPedido;
+import com.Pos.RestauranteApp.repository.EmpleadoRepository; // <-- Añadir import
+import com.Pos.RestauranteApp.repository.MesaRepository;
+import com.Pos.RestauranteApp.repository.PedidoMesaRepository;
+import com.Pos.RestauranteApp.repository.ProductoRepository;
 
 @Service
 public class PedidoMesaService {
@@ -166,6 +173,38 @@ public class PedidoMesaService {
         PedidoMesa pedidoActualizado = pedidoMesaRepository.save(pedido);
 
         return convertirADTO(pedidoActualizado);
+    }
+    // === NUEVO MÉTODO PARA CAMBIAR ESTADO ===
+    /**
+     * Cambia el estado de un pedido existente.
+     * @param id El ID del pedido a modificar.
+     * @param nuevoEstadoStr El nuevo estado como String (debe coincidir con un valor del Enum EstadoPedido).
+     * @return El PedidoMesaDTO actualizado.
+     * @throws ResourceNotFoundException Si el pedido no se encuentra.
+     * @throws IllegalArgumentException Si el nuevoEstadoStr no es válido.
+     */
+    public PedidoMesaDTO cambiarEstadoPedido(Long id, String nuevoEstadoStr) {
+        PedidoMesa pedido = pedidoMesaRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Pedido no encontrado con id: " + id));
+
+        try {
+            // Convertir el String a un valor del Enum
+            EstadoPedido nuevoEstado = EstadoPedido.valueOf(nuevoEstadoStr.toUpperCase());
+
+            // Validaciones opcionales (ej. no se puede reabrir un pedido cerrado desde aquí)
+            if (pedido.getEstado() == EstadoPedido.CERRADO || pedido.getEstado() == EstadoPedido.CANCELADO) {
+                 throw new IllegalArgumentException("No se puede cambiar el estado de un pedido CERRADO o CANCELADO.");
+            }
+            // Puedes añadir más lógica si es necesario (ej. solo Cocina puede poner LISTO)
+
+            pedido.setEstado(nuevoEstado);
+            PedidoMesa pedidoActualizado = pedidoMesaRepository.save(pedido);
+            return convertirADTO(pedidoActualizado);
+
+        } catch (IllegalArgumentException e) {
+            // Ocurre si el nuevoEstadoStr no es un valor válido del Enum
+            throw new IllegalArgumentException("Estado de pedido no válido: " + nuevoEstadoStr);
+        }
     }
 
 }
