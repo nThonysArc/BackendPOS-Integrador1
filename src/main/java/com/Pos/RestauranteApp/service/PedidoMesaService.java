@@ -1,10 +1,13 @@
 package com.Pos.RestauranteApp.service;
 
-import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Arrays;
+import java.util.List; // <-- AÑADIDO
+import java.util.Optional;
+import java.util.stream.Collectors; // <-- AÑADIDO
 
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional; // <-- AÑADIDO
 
 import com.Pos.RestauranteApp.dto.DetallePedidoMesaDTO; // <-- AÑADIR IMPORT
  import com.Pos.RestauranteApp.dto.PedidoMesaDTO;
@@ -14,6 +17,7 @@ import com.Pos.RestauranteApp.model.Empleado;
 import com.Pos.RestauranteApp.model.Mesa;
 import com.Pos.RestauranteApp.model.PedidoMesa;
 import com.Pos.RestauranteApp.model.PedidoMesa.EstadoPedido;
+import com.Pos.RestauranteApp.repository.DetallePedidoMesaRepository; // <-- AÑADIDO
 import com.Pos.RestauranteApp.repository.EmpleadoRepository;
 import com.Pos.RestauranteApp.repository.MesaRepository;
 import com.Pos.RestauranteApp.repository.PedidoMesaRepository; // <-- Añadir import
@@ -25,29 +29,40 @@ public class PedidoMesaService {
     private final MesaRepository mesaRepository;
     private final EmpleadoRepository empleadoRepository;
     private final ProductoRepository productoRepository;
+    // --- AÑADIDO ---
+    private final DetallePedidoMesaRepository detallePedidoMesaRepository;
+
 
     public PedidoMesaService(PedidoMesaRepository pedidoMesaRepository,
                              MesaRepository mesaRepository,
                              EmpleadoRepository empleadoRepository,
-                             ProductoRepository productoRepository) {
+                             ProductoRepository productoRepository,
+                             // --- AÑADIDO ---
+                             DetallePedidoMesaRepository detallePedidoMesaRepository) {
         this.pedidoMesaRepository = pedidoMesaRepository;
         this.mesaRepository = mesaRepository;
         this.empleadoRepository = empleadoRepository;
         this.productoRepository = productoRepository;
+        // --- AÑADIDO ---
+        this.detallePedidoMesaRepository = detallePedidoMesaRepository;
     }
 
     // Conversión Entidad → DTO
     private PedidoMesaDTO convertirADTO(PedidoMesa pedidoMesa) {
-        List<DetallePedidoMesaDTO> detallesDTO = pedidoMesa.getDetalles()
-                .stream()
-                .map(detalle -> new DetallePedidoMesaDTO(
-                        detalle.getIdDetallePedidoMesa(),
-                        detalle.getProducto().getIdProducto(),
-                        detalle.getProducto().getNombre(),
-                        detalle.getCantidad(),
-                        detalle.getPrecioUnitario()
-                ))
-                .collect(Collectors.toList());
+        // --- MODIFICADO: Asegurarse que los detalles no sean nulos ---
+        List<DetallePedidoMesaDTO> detallesDTO = List.of();
+        if (pedidoMesa.getDetalles() != null) {
+            detallesDTO = pedidoMesa.getDetalles()
+                    .stream()
+                    .map(detalle -> new DetallePedidoMesaDTO(
+                            detalle.getIdDetallePedidoMesa(),
+                            detalle.getProducto().getIdProducto(),
+                            detalle.getProducto().getNombre(),
+                            detalle.getCantidad(),
+                            detalle.getPrecioUnitario()
+                    ))
+                    .collect(Collectors.toList());
+        }
 
         return new PedidoMesaDTO(
                 pedidoMesa.getIdPedidoMesa(),
@@ -62,7 +77,7 @@ public class PedidoMesaService {
         );
     }
 
-    // Conversión DTO → Entidad
+    // Conversión DTO → Entidad (Usado para CREAR)
     private PedidoMesa convertirAEntidad(PedidoMesaDTO dto) {
         PedidoMesa pedido = new PedidoMesa();
         pedido.setIdPedidoMesa(dto.getIdPedidoMesa());
@@ -111,6 +126,27 @@ public class PedidoMesaService {
                 .orElseThrow(() -> new ResourceNotFoundException("Pedido no encontrado con id: " + id));
     }
 
+    // --- ¡¡NUEVO MÉTODO AÑADIDO!! ---
+    /**
+     * Busca el pedido activo (ABIERTO, EN_COCINA, LISTO_PARA_ENTREGAR) de una mesa específica.
+     */
+    public PedidoMesaDTO obtenerPedidoActivoPorMesa(Long mesaId) {
+        List<EstadoPedido> estadosActivos = Arrays.asList(
+                EstadoPedido.ABIERTO,
+                EstadoPedido.EN_COCINA,
+                EstadoPedido.LISTO_PARA_ENTREGAR
+        );
+
+        Optional<PedidoMesa> pedidoActivoOpt = pedidoMesaRepository
+                .findFirstByMesaIdMesaAndEstadoInOrderByFechaHoraCreacionDesc(mesaId, estadosActivos);
+
+        return pedidoActivoOpt
+                .map(this::convertirADTO)
+                .orElseThrow(() -> new ResourceNotFoundException("No se encontró ningún pedido activo para la mesa id: " + mesaId));
+    }
+
+
+    @Transactional
     public PedidoMesaDTO guardar(PedidoMesaDTO dto) {
         PedidoMesa pedido = convertirAEntidad(dto);
 
@@ -145,6 +181,55 @@ public class PedidoMesaService {
         return convertirADTO(pedidoGuardado);
     }
 
+    // --- ¡¡NUEVO MÉTODO AÑADIDO!! ---
+    /**
+     * Actualiza un pedido existente. Usado para añadir más items.
+     */
+    @Transactional
+    public PedidoMesaDTO actualizar(Long id, PedidoMesaDTO dto) {
+        // 1. Buscar el pedido existente
+        PedidoMesa pedido = pedidoMesaRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Pedido no encontrado con id: " + id));
+
+        // 2. Validar que no esté cerrado
+        if (pedido.getEstado() == EstadoPedido.CERRADO || pedido.getEstado() == EstadoPedido.CANCELADO) {
+            throw new IllegalArgumentException("No se puede modificar un pedido cerrado o cancelado.");
+        }
+
+        // 3. Limpiar detalles antiguos
+        //    Usamos orphanRemoval=true en PedidoMesa, pero la limpieza manual es más segura.
+        detallePedidoMesaRepository.deleteAll(pedido.getDetalles());
+        pedido.getDetalles().clear();
+
+        // 4. Añadir nuevos detalles desde el DTO
+        List<DetallePedidoMesa> nuevosDetalles = dto.getDetalles().stream().map(d -> {
+            DetallePedidoMesa detalle = new DetallePedidoMesa();
+            detalle.setPedidoMesa(pedido);
+            detalle.setProducto(productoRepository.findById(d.getIdProducto())
+                    .orElseThrow(() -> new ResourceNotFoundException("Producto no encontrado: " + d.getIdProducto())));
+            detalle.setCantidad(d.getCantidad());
+            detalle.setPrecioUnitario(d.getPrecioUnitario());
+            return detalle;
+        }).collect(Collectors.toList());
+
+        pedido.getDetalles().addAll(nuevosDetalles);
+
+        // 5. Recalcular total
+        pedido.setTotal(pedido.getDetalles().stream()
+                .mapToDouble(d -> d.getCantidad() * d.getPrecioUnitario())
+                .sum());
+
+        // 6. ¡Importante! Regresar el estado a ABIERTO (o EN_COCINA si se prefiere)
+        //    para notificar a la cocina que hay cambios o nuevos items.
+        pedido.setEstado(EstadoPedido.ABIERTO);
+
+        // 7. Guardar
+        PedidoMesa pedidoActualizado = pedidoMesaRepository.save(pedido);
+        return convertirADTO(pedidoActualizado);
+    }
+
+
+    @Transactional
     public void eliminar(Long id) {
         PedidoMesa pedido = pedidoMesaRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Pedido no encontrado"));
@@ -156,6 +241,7 @@ public class PedidoMesaService {
 
         pedidoMesaRepository.delete(pedido);
     }
+    @Transactional
     public PedidoMesaDTO cerrarPedido(Long id) {
         PedidoMesa pedido = pedidoMesaRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Pedido no encontrado"));
@@ -182,6 +268,7 @@ public class PedidoMesaService {
      * @throws ResourceNotFoundException Si el pedido no se encuentra.
      * @throws IllegalArgumentException Si el nuevoEstadoStr no es válido.
      */
+    @Transactional
     public PedidoMesaDTO cambiarEstadoPedido(Long id, String nuevoEstadoStr) {
         PedidoMesa pedido = pedidoMesaRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Pedido no encontrado con id: " + id));

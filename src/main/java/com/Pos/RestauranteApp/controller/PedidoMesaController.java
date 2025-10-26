@@ -32,7 +32,7 @@ public class PedidoMesaController {
 
     //  Listar todos los pedidos
     @GetMapping
-    @PreAuthorize("hasAnyRole('ADMIN', 'MESERO', 'CAJERO')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MESERO', 'CAJERO', 'COCINA')") // <-- COCINA añadido
     public ResponseEntity<List<PedidoMesaDTO>> listarPedidos() {
         List<PedidoMesaDTO> pedidos = pedidoMesaService.listar();
         return ResponseEntity.ok(pedidos);
@@ -40,11 +40,23 @@ public class PedidoMesaController {
 
     // Solo Meseros o Admins pueden ver un pedido
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'MESERO', 'CAJERO')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MESERO', 'CAJERO', 'COCINA')") // <-- COCINA añadido
     public ResponseEntity<PedidoMesaDTO> obtenerPedido(@PathVariable Long id) {
         PedidoMesaDTO pedido = pedidoMesaService.obtenerPorId(id);
         return ResponseEntity.ok(pedido);
     }
+
+    // --- ¡¡NUEVO ENDPOINT AÑADIDO!! ---
+    /**
+     * Obtiene el pedido ACTIVO (no cerrado o cancelado) de una mesa específica.
+     */
+    @GetMapping("/mesa/{mesaId}/activo")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MESERO')")
+    public ResponseEntity<PedidoMesaDTO> obtenerPedidoActivoPorMesa(@PathVariable Long mesaId) {
+        PedidoMesaDTO pedido = pedidoMesaService.obtenerPedidoActivoPorMesa(mesaId);
+        return ResponseEntity.ok(pedido);
+    }
+
 
     //  Crear nuevo pedido
     @PostMapping
@@ -53,6 +65,21 @@ public class PedidoMesaController {
         PedidoMesaDTO nuevoPedido = pedidoMesaService.guardar(pedidoDTO);
         return ResponseEntity.ok(nuevoPedido);
     }
+
+    // --- ¡¡NUEVO ENDPOINT AÑADIDO!! ---
+    /**
+     * Actualiza un pedido existente (ej. para añadir más items).
+     */
+    @PutMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MESERO')")
+    public ResponseEntity<PedidoMesaDTO> actualizarPedido(
+            @PathVariable Long id,
+            @Valid @RequestBody PedidoMesaDTO pedidoDTO) {
+        
+        PedidoMesaDTO pedidoActualizado = pedidoMesaService.actualizar(id, pedidoDTO);
+        return ResponseEntity.ok(pedidoActualizado);
+    }
+
 
     //  Eliminar pedido (también libera la mesa)
     @DeleteMapping("/{id}")
