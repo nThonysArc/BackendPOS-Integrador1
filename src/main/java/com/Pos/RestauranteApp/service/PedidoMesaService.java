@@ -6,19 +6,18 @@ import java.util.stream.Collectors;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
-import com.Pos.RestauranteApp.dto.DetallePedidoMesaDTO;
-import com.Pos.RestauranteApp.dto.PedidoMesaDTO;
+import com.Pos.RestauranteApp.dto.DetallePedidoMesaDTO; // <-- AÑADIR IMPORT
+ import com.Pos.RestauranteApp.dto.PedidoMesaDTO;
 import com.Pos.RestauranteApp.exception.ResourceNotFoundException;
 import com.Pos.RestauranteApp.model.DetallePedidoMesa;
 import com.Pos.RestauranteApp.model.Empleado;
 import com.Pos.RestauranteApp.model.Mesa;
 import com.Pos.RestauranteApp.model.PedidoMesa;
 import com.Pos.RestauranteApp.model.PedidoMesa.EstadoPedido;
-import com.Pos.RestauranteApp.repository.EmpleadoRepository; // <-- Añadir import
+import com.Pos.RestauranteApp.repository.EmpleadoRepository;
 import com.Pos.RestauranteApp.repository.MesaRepository;
-import com.Pos.RestauranteApp.repository.PedidoMesaRepository;
+import com.Pos.RestauranteApp.repository.PedidoMesaRepository; // <-- Añadir import
 import com.Pos.RestauranteApp.repository.ProductoRepository;
-
 @Service
 public class PedidoMesaService {
 
