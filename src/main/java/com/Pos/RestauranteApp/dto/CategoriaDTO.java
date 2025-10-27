@@ -1,11 +1,11 @@
 package com.Pos.RestauranteApp.dto;
 
-import jakarta.validation.constraints.NotBlank; // ⬅️ AÑADIDO
+import jakarta.validation.constraints.NotBlank; 
 
 public class CategoriaDTO {
     private Long idCategoria;
 
-    @NotBlank(message = "El nombre no puede estar vacío") // ⬅️ AÑADIDO
+    @NotBlank(message = "El nombre no puede estar vacío") 
     private String nombre;
 
     private Long idCategoriaPadre; // puede ser null si no tiene padre

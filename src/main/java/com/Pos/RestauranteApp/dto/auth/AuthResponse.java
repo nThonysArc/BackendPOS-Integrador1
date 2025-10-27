@@ -1,15 +1,9 @@
 package com.Pos.RestauranteApp.dto.auth;
-
-// NO ES NECESARIO MODIFICAR ESTE ARCHIVO SI YA LO TIENES ASÍ
 public class AuthResponse {
     private String token;
-    
-    // --- AÑADIR ESTOS CAMPOS ---
-    private Long id;
+        private Long id;
     private String nombre;
     private String rol;
-
-    // --- MODIFICAR CONSTRUCTOR ---
     public AuthResponse(String token, Long id, String nombre, String rol) {
         this.token = token;
         this.id = id;
@@ -17,7 +11,6 @@ public class AuthResponse {
         this.rol = rol;
     }
 
-    // --- AÑADIR GETTERS Y SETTERS PARA LOS NUEVOS CAMPOS ---
     public String getToken() { return token; }
     public void setToken(String token) { this.token = token; }
 
