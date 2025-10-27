@@ -43,7 +43,7 @@ public class Empleado implements UserDetails {
         this.rol = rol;
     }
 
-    // Getters y setters (Los que ya tenías)
+    // Getters y setters 
     public Long getIdEmpleado() { return idEmpleado; }
     public void setIdEmpleado(Long idEmpleado) { this.idEmpleado = idEmpleado; }
 

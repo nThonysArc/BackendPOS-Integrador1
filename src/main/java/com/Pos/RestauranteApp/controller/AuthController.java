@@ -2,7 +2,7 @@ package com.Pos.RestauranteApp.controller;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken; // <-- AÑADIR IMPORT
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken; 
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -33,30 +33,30 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<?> createAuthenticationToken(@RequestBody AuthRequest authRequest) {
-        // 1. Autenticar al usuario
+        // Autenticar al usuario
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(authRequest.getUsername(), authRequest.getPassword())
         );
 
-        // 2. Si es exitoso, cargar los detalles del usuario
+        // Si funciona cargamos los detalles del usuario
         final UserDetails userDetails = userDetailsService.loadUserByUsername(authRequest.getUsername());
         
-        // 3. Generar el token JWT
+        // Generar el token JWT
         final String jwt = jwtService.generateToken(userDetails);
 
-        // 4. --- MODIFICACIÓN: OBTENER DATOS DEL USUARIO ---
-        //    (Sabemos que nuestro UserDetails es en realidad un objeto Empleado)
+        // OBTENER DATOS DEL USUARIO 
+        // 
         Empleado empleadoLogueado = (Empleado) userDetails;
 
         Long id = empleadoLogueado.getIdEmpleado();
         String nombre = empleadoLogueado.getNombre();
-        // Obtener el rol (ej. "ROLE_ADMIN", "ROLE_MESERO")
-        // .getAuthorities() devuelve una colección, tomamos el primero.
+        // Obtener el rol "ROLE_ADMIN", "ROLE_MESERO"
+
         String rol = empleadoLogueado.getAuthorities().stream().findFirst()
                          .map(Object::toString)
-                         .orElse("ROLE_USER"); // Fallback por si acaso
+                         .orElse("ROLE_USER"); 
 
-        // 5. Devolver el token Y los datos del usuario
+        // Devolver el token Y los datos del usuario
         return ResponseEntity.ok(new AuthResponse(jwt, id, nombre, rol));
     }
 }

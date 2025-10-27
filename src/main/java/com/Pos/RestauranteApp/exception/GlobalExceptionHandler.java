@@ -20,7 +20,7 @@ import java.util.Map;
 @ControllerAdvice
 public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
-    // 1. Manejador para errores "No Encontrado" (404)
+    // Manejador para errores "No Encontrado" 
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<Object> handleResourceNotFoundException(ResourceNotFoundException ex, WebRequest request) {
         Map<String, Object> body = new HashMap<>();
@@ -28,11 +28,11 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         body.put("status", HttpStatus.NOT_FOUND.value());
         body.put("error", "Not Found");
         body.put("message", ex.getMessage());
-        body.put("path", request.getDescription(false).substring(4)); // Quita "uri="
+        body.put("path", request.getDescription(false).substring(4));
         return new ResponseEntity<>(body, HttpStatus.NOT_FOUND);
     }
 
-    // 2. Manejador para errores de Seguridad (403)
+    // Manejador para errores de Seguridad 
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<Object> handleAccessDeniedException(AccessDeniedException ex, WebRequest request) {
         Map<String, Object> body = new HashMap<>();
@@ -53,10 +53,10 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         body.put("message", "Credenciales inválidas o error de autenticación");
         body.put("message", ex.getMessage());
         body.put("path", request.getDescription(false).substring(4));
-        return new ResponseEntity<>(body, HttpStatus.UNAUTHORIZED); // Devolver 401
+        return new ResponseEntity<>(body, HttpStatus.UNAUTHORIZED); 
     }
 
-    // 3. Manejador para errores de Validación (@Valid) (400)
+    // Manejador para errores de Validación 
     @Override
     protected ResponseEntity<Object> handleMethodArgumentNotValid(
             MethodArgumentNotValidException ex, HttpHeaders headers, HttpStatusCode status, WebRequest request) {
@@ -78,7 +78,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
     }
 
-    // 4. Manejador genérico para cualquier otra excepción (500)
+    // Manejador  para cualquier otra excepción
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Object> handleGlobalException(Exception ex, WebRequest request) {
         Map<String, Object> body = new HashMap<>();
@@ -88,7 +88,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         body.put("message", "Ocurrió un error inesperado: " + ex.getMessage());
         body.put("path", request.getDescription(false).substring(4));
 
-        ex.printStackTrace(); // Importante para ver el error en la consola
+        ex.printStackTrace(); 
 
         return new ResponseEntity<>(body, HttpStatus.INTERNAL_SERVER_ERROR);
     }

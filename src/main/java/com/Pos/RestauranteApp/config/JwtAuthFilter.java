@@ -37,13 +37,13 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         final String jwt;
         final String userEmail;
 
-        // Si no hay cabecera o no empieza con "Bearer ", pasamos al siguiente filtro
+        // Si no hay cabecera o no empieza con "Bearer "pasamos al siguiente filtro
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             filterChain.doFilter(request, response);
             return;
         }
 
-        // Extraemos el token (después de "Bearer ")
+        // Extraemos el token
         jwt = authHeader.substring(7);
         userEmail = jwtService.extractUsername(jwt);
 
@@ -56,7 +56,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                 // Creamos una autenticación y la establecemos en el Contexto de Seguridad
                 UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                         userDetails,
-                        null, // No necesitamos credenciales (password) aquí
+                        null,
                         userDetails.getAuthorities()
                 );
                 authToken.setDetails(
