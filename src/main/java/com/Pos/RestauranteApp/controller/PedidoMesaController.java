@@ -46,10 +46,6 @@ public class PedidoMesaController {
         return ResponseEntity.ok(pedido);
     }
 
-    // --- ¡¡ENDPOINT MODIFICADO!! ---
-    /**
-     * Obtiene el pedido ACTIVO (no cerrado o cancelado) de una mesa específica.
-     */
     @GetMapping("/mesa/{mesaId}/activo")
     @PreAuthorize("hasAnyRole('ADMIN', 'MESERO')")
     public ResponseEntity<PedidoMesaDTO> obtenerPedidoActivoPorMesa(@PathVariable Long mesaId) {
