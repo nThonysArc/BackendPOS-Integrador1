@@ -59,7 +59,8 @@ public class PedidoMesaService {
                             detalle.getProducto().getIdProducto(),
                             detalle.getProducto().getNombre(),
                             detalle.getCantidad(),
-                            detalle.getPrecioUnitario()
+                            detalle.getPrecioUnitario(),
+                            detalle.getEstadoDetalle() // <-- ¡¡NUEVO!!
                     ))
                     .collect(Collectors.toList());
         }
@@ -78,21 +79,34 @@ public class PedidoMesaService {
     }
 
     // Conversión DTO → Entidad (Usado para CREAR)
-    private PedidoMesa convertirAEntidad(PedidoMesaDTO dto) {
-        PedidoMesa pedido = new PedidoMesa();
-        pedido.setIdPedidoMesa(dto.getIdPedidoMesa());
-        pedido.setMesa(mesaRepository.findById(dto.getIdMesa())
-                .orElseThrow(() -> new ResourceNotFoundException("Mesa no encontrada con id: " + dto.getIdMesa())));
-        // 1. Obtener el usuario autenticado
-        String usuarioLogueado = SecurityContextHolder.getContext().getAuthentication().getName();
+    // --- ¡¡MODIFICADO!! ---
+    private PedidoMesa convertirAEntidad(PedidoMesaDTO dto, boolean esActualizacion) {
+        PedidoMesa pedido;
 
-        // 2. Buscar al empleado por su nombre de 'usuario'
-        Empleado meseroLogueado = empleadoRepository.findByUsuario(usuarioLogueado)
-                .orElseThrow(() -> new ResourceNotFoundException("Usuario (Mesero) no encontrado: " + usuarioLogueado));
-        // 3. Asignar el empleado logueado
-        pedido.setMesero(meseroLogueado);
+        if (esActualizacion && dto.getIdPedidoMesa() != null) {
+            // Si es actualización, cargamos el pedido existente
+            pedido = pedidoMesaRepository.findById(dto.getIdPedidoMesa())
+                    .orElseThrow(() -> new ResourceNotFoundException("Pedido no encontrado con id: " + dto.getIdPedidoMesa()));
+        } else {
+            // Si es creación, creamos uno nuevo
+            pedido = new PedidoMesa();
+            pedido.setIdPedidoMesa(dto.getIdPedidoMesa());
+            pedido.setMesa(mesaRepository.findById(dto.getIdMesa())
+                    .orElseThrow(() -> new ResourceNotFoundException("Mesa no encontrada con id: " + dto.getIdMesa())));
+            // 1. Obtener el usuario autenticado
+            String usuarioLogueado = SecurityContextHolder.getContext().getAuthentication().getName();
 
-        pedido.setEstado(PedidoMesa.EstadoPedido.valueOf(dto.getEstado()));
+            // 2. Buscar al empleado por su nombre de 'usuario'
+            Empleado meseroLogueado = empleadoRepository.findByUsuario(usuarioLogueado)
+                    .orElseThrow(() -> new ResourceNotFoundException("Usuario (Mesero) no encontrado: " + usuarioLogueado));
+            // 3. Asignar el empleado logueado
+            pedido.setMesero(meseroLogueado);
+            pedido.setEstado(PedidoMesa.EstadoPedido.valueOf(dto.getEstado()));
+        }
+
+
+        // --- ¡¡MODIFICADO!!: Añadimos solo los detalles nuevos ---
+        // El DTO solo traerá los detalles nuevos.
         List<DetallePedidoMesa> detalles = dto.getDetalles().stream().map(d -> {
             DetallePedidoMesa detalle = new DetallePedidoMesa();
             detalle.setPedidoMesa(pedido);
@@ -101,12 +115,20 @@ public class PedidoMesaService {
                     .orElseThrow(() -> new ResourceNotFoundException("Producto no encontrado con id: " + d.getIdProducto())));
             detalle.setCantidad(d.getCantidad());
             detalle.setPrecioUnitario(d.getPrecioUnitario());
+            detalle.setEstadoDetalle("PENDIENTE"); // <-- ¡¡NUEVO!! Marcar como pendiente
             return detalle;
 
         }).collect(Collectors.toList());
 
-        pedido.setDetalles(detalles);
-        pedido.setTotal(detalles.stream()
+        // Si es actualización, añadimos los nuevos detalles a los existentes
+        if (esActualizacion) {
+            pedido.getDetalles().addAll(detalles);
+        } else {
+            pedido.setDetalles(detalles);
+        }
+
+        // Recalculamos el total basado en TODOS los detalles
+        pedido.setTotal(pedido.getDetalles().stream()
                 .mapToDouble(d -> d.getCantidad() * d.getPrecioUnitario())
                 .sum());
 
@@ -142,48 +164,34 @@ public class PedidoMesaService {
 
         return pedidoActivoOpt
                 .map(this::convertirADTO)
-                .orElseThrow(() -> new ResourceNotFoundException("No se encontró ningún pedido activo para la mesa id: " + mesaId));
+                // --- MODIFICADO: No lanzar excepción si no se encuentra ---
+                .orElse(null); // Devuelve null si no hay pedido activo
+                //.orElseThrow(() -> new ResourceNotFoundException("No se encontró ningún pedido activo para la mesa id: " + mesaId));
     }
 
 
     @Transactional
     public PedidoMesaDTO guardar(PedidoMesaDTO dto) {
-        PedidoMesa pedido = convertirAEntidad(dto);
+        // --- ¡¡MODIFICADO!! ---
+        PedidoMesa pedido = convertirAEntidad(dto, false); // false = no es actualización
 
-        pedido.setDetalles(null);
+        // --- Lógica de guardado simplificada ---
+        // Como 'convertirAEntidad' ya asigna los detalles, solo guardamos.
+        // El CascadeType.ALL en PedidoMesa.detalles se encarga de guardar los detalles.
         PedidoMesa pedidoGuardado = pedidoMesaRepository.save(pedido);
-
-        pedidoGuardado.setDetalles(
-                dto.getDetalles().stream().map(d -> {
-                    DetallePedidoMesa detalle = new DetallePedidoMesa();
-                    detalle.setPedidoMesa(pedidoGuardado);
-                    detalle.setProducto(productoRepository.findById(d.getIdProducto())
-                            .orElseThrow(() -> new ResourceNotFoundException("Producto no encontrado con id: " + d.getIdProducto())));
-                    detalle.setCantidad(d.getCantidad());
-                    detalle.setPrecioUnitario(d.getPrecioUnitario());
-                    return detalle;
-                }).collect(Collectors.toList())
-        );
-
-        // Calcula total del pedido
-        pedidoGuardado.setTotal(pedidoGuardado.getDetalles().stream()
-                .mapToDouble(d -> d.getCantidad() * d.getPrecioUnitario())
-                .sum());
 
         // 🔹 Cambiar el estado de la mesa a OCUPADA automáticamente
         Mesa mesa = pedidoGuardado.getMesa();
         mesa.setEstado(Mesa.EstadoMesa.OCUPADA);
         mesaRepository.save(mesa);
 
-        // Guarda nuevamente el pedido con los detalles y el total
-        pedidoMesaRepository.save(pedidoGuardado);
-
         return convertirADTO(pedidoGuardado);
     }
 
-    // --- ¡¡NUEVO MÉTODO AÑADIDO!! ---
+    // --- ¡¡MÉTODO MODIFICADO!! ---
     /**
      * Actualiza un pedido existente. Usado para añadir más items.
+     * Solo recibe los items NUEVOS en el DTO.
      */
     @Transactional
     public PedidoMesaDTO actualizar(Long id, PedidoMesaDTO dto) {
@@ -196,12 +204,12 @@ public class PedidoMesaService {
             throw new IllegalArgumentException("No se puede modificar un pedido cerrado o cancelado.");
         }
 
-        // 3. Limpiar detalles antiguos
-        //    Usamos orphanRemoval=true en PedidoMesa, pero la limpieza manual es más segura.
-        detallePedidoMesaRepository.deleteAll(pedido.getDetalles());
-        pedido.getDetalles().clear();
+        // 3. --- ¡¡ELIMINADO!! --- Ya no limpiamos detalles antiguos
+        //    detallePedidoMesaRepository.deleteAll(pedido.getDetalles());
+        //    pedido.getDetalles().clear();
 
         // 4. Añadir nuevos detalles desde el DTO
+        //    (El DTO solo trae los detalles nuevos)
         List<DetallePedidoMesa> nuevosDetalles = dto.getDetalles().stream().map(d -> {
             DetallePedidoMesa detalle = new DetallePedidoMesa();
             detalle.setPedidoMesa(pedido);
@@ -209,18 +217,19 @@ public class PedidoMesaService {
                     .orElseThrow(() -> new ResourceNotFoundException("Producto no encontrado: " + d.getIdProducto())));
             detalle.setCantidad(d.getCantidad());
             detalle.setPrecioUnitario(d.getPrecioUnitario());
+            detalle.setEstadoDetalle("PENDIENTE"); // <-- ¡¡NUEVO!! Marcar como pendiente
             return detalle;
         }).collect(Collectors.toList());
 
-        pedido.getDetalles().addAll(nuevosDetalles);
+        pedido.getDetalles().addAll(nuevosDetalles); // <-- ¡¡AÑADIMOS, NO REEMPLAZAMOS!!
 
-        // 5. Recalcular total
+        // 5. Recalcular total (con todos los detalles, viejos y nuevos)
         pedido.setTotal(pedido.getDetalles().stream()
                 .mapToDouble(d -> d.getCantidad() * d.getPrecioUnitario())
                 .sum());
 
-        // 6. ¡Importante! Regresar el estado a ABIERTO (o EN_COCINA si se prefiere)
-        //    para notificar a la cocina que hay cambios o nuevos items.
+        // 6. ¡Importante! Regresar el estado a ABIERTO
+        //    para notificar a la cocina que hay nuevos items PENDIENTES.
         pedido.setEstado(EstadoPedido.ABIERTO);
 
         // 7. Guardar
@@ -259,15 +268,7 @@ public class PedidoMesaService {
 
         return convertirADTO(pedidoActualizado);
     }
-    // === NUEVO MÉTODO PARA CAMBIAR ESTADO ===
-    /**
-     * Cambia el estado de un pedido existente.
-     * @param id El ID del pedido a modificar.
-     * @param nuevoEstadoStr El nuevo estado como String (debe coincidir con un valor del Enum EstadoPedido).
-     * @return El PedidoMesaDTO actualizado.
-     * @throws ResourceNotFoundException Si el pedido no se encuentra.
-     * @throws IllegalArgumentException Si el nuevoEstadoStr no es válido.
-     */
+    // === MÉTODO MODIFICADO ===
     @Transactional
     public PedidoMesaDTO cambiarEstadoPedido(Long id, String nuevoEstadoStr) {
         PedidoMesa pedido = pedidoMesaRepository.findById(id)
@@ -284,6 +285,19 @@ public class PedidoMesaService {
             // Puedes añadir más lógica si es necesario (ej. solo Cocina puede poner LISTO)
 
             pedido.setEstado(nuevoEstado);
+            
+            // --- ¡¡MODIFICACIÓN!! ---
+            // Si el nuevo estado es LISTO_PARA_ENTREGAR, marcamos todos los PENDIENTES como LISTO
+            // Esto es lo que hacía el botón de cocina
+            if (nuevoEstado == EstadoPedido.LISTO_PARA_ENTREGAR) {
+                 for (DetallePedidoMesa detalle : pedido.getDetalles()) {
+                    if ("PENDIENTE".equalsIgnoreCase(detalle.getEstadoDetalle())) {
+                        detalle.setEstadoDetalle("LISTO");
+                    }
+                }
+            }
+            // --- FIN MODIFICACIÓN ---
+            
             PedidoMesa pedidoActualizado = pedidoMesaRepository.save(pedido);
             return convertirADTO(pedidoActualizado);
 
@@ -291,6 +305,44 @@ public class PedidoMesaService {
             // Ocurre si el nuevoEstadoStr no es un valor válido del Enum
             throw new IllegalArgumentException("Estado de pedido no válido: " + nuevoEstadoStr);
         }
+    }
+    
+    // === ¡¡NUEVO MÉTODO PARA COCINA!! ===
+    /**
+     * Marca todos los detalles PENDIENTES de un pedido como LISTO
+     * y actualiza el estado del pedido principal a LISTO_PARA_ENTREGAR.
+     */
+    @Transactional
+    public PedidoMesaDTO marcarPendientesComoListos(Long id) {
+        PedidoMesa pedido = pedidoMesaRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Pedido no encontrado con id: " + id));
+
+        boolean itemsPendientesEncontrados = false;
+        
+        for (DetallePedidoMesa detalle : pedido.getDetalles()) {
+            if ("PENDIENTE".equalsIgnoreCase(detalle.getEstadoDetalle())) {
+                detalle.setEstadoDetalle("LISTO");
+                itemsPendientesEncontrados = true;
+            }
+        }
+        
+        // Si encontramos y marcamos items, ponemos el pedido listo para caja.
+        if (itemsPendientesEncontrados) {
+             // El estado LISTO_PARA_ENTREGAR es para que Caja lo vea.
+            pedido.setEstado(EstadoPedido.LISTO_PARA_ENTREGAR);
+        } else {
+            // Si no había pendientes, quizás ya estaba listo. Reafirmamos.
+            // Opcional: Si no hay PENDIENTES, y SÍ hay LISTOS, ponerlo LISTO_PARA_ENTREGAR.
+            boolean hayPendientes = pedido.getDetalles().stream()
+                .anyMatch(d -> "PENDIENTE".equalsIgnoreCase(d.getEstadoDetalle()));
+                
+            if (!hayPendientes) {
+                pedido.setEstado(EstadoPedido.LISTO_PARA_ENTREGAR);
+            }
+        }
+
+        PedidoMesa pedidoActualizado = pedidoMesaRepository.save(pedido);
+        return convertirADTO(pedidoActualizado);
     }
 
 }

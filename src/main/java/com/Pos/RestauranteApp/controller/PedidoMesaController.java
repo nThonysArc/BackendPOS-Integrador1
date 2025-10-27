@@ -46,7 +46,7 @@ public class PedidoMesaController {
         return ResponseEntity.ok(pedido);
     }
 
-    // --- ¡¡NUEVO ENDPOINT AÑADIDO!! ---
+    // --- ¡¡ENDPOINT MODIFICADO!! ---
     /**
      * Obtiene el pedido ACTIVO (no cerrado o cancelado) de una mesa específica.
      */
@@ -54,6 +54,10 @@ public class PedidoMesaController {
     @PreAuthorize("hasAnyRole('ADMIN', 'MESERO')")
     public ResponseEntity<PedidoMesaDTO> obtenerPedidoActivoPorMesa(@PathVariable Long mesaId) {
         PedidoMesaDTO pedido = pedidoMesaService.obtenerPedidoActivoPorMesa(mesaId);
+        // --- MODIFICADO: Devolver 404 si es null ---
+        if (pedido == null) {
+            return ResponseEntity.notFound().build();
+        }
         return ResponseEntity.ok(pedido);
     }
 
@@ -66,9 +70,10 @@ public class PedidoMesaController {
         return ResponseEntity.ok(nuevoPedido);
     }
 
-    // --- ¡¡NUEVO ENDPOINT AÑADIDO!! ---
+    // --- ¡¡ENDPOINT MODIFICADO!! ---
     /**
-     * Actualiza un pedido existente (ej. para añadir más items).
+     * Actualiza un pedido existente (AÑADE nuevos items).
+     * El DTO solo debe contener los NUEVOS items.
      */
     @PutMapping("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'MESERO')")
@@ -96,14 +101,10 @@ public class PedidoMesaController {
         PedidoMesaDTO pedidoCerrado = pedidoMesaService.cerrarPedido(id);
         return ResponseEntity.ok(pedidoCerrado);
     }
-    // === NUEVO ENDPOINT PARA CAMBIAR ESTADO ===
+    // === ENDPOINT MODIFICADO ===
     /**
      * Cambia el estado de un pedido específico.
-     * Usado por Cocina para marcar como EN_COCINA, LISTO_PARA_ENTREGAR, etc.
-     * Requiere rol COCINA, MESERO o ADMIN.
-     * @param id El ID del pedido.
-     * @param nuevoEstado El nuevo estado deseado (ej. "LISTO_PARA_ENTREGAR").
-     * @return El PedidoMesaDTO actualizado.
+     * DEPRECADO: Usar /marcarListos en su lugar para cocina.
      */
     @PutMapping("/{id}/estado/{nuevoEstado}")
     @PreAuthorize("hasAnyRole('ADMIN', 'MESERO', 'COCINA')") // <-- Define quién puede cambiar estado
@@ -112,6 +113,18 @@ public class PedidoMesaController {
             @PathVariable String nuevoEstado) {
         
         PedidoMesaDTO pedidoActualizado = pedidoMesaService.cambiarEstadoPedido(id, nuevoEstado);
+        return ResponseEntity.ok(pedidoActualizado);
+    }
+    
+    // === ¡¡NUEVO ENDPOINT PARA COCINA!! ===
+    /**
+     * Marca todos los detalles PENDIENTES de un pedido como LISTOS.
+     * Establece el estado del PedidoMesa a LISTO_PARA_ENTREGAR.
+     */
+    @PutMapping("/{id}/marcarListos")
+    @PreAuthorize("hasAnyRole('ADMIN', 'COCINA')")
+    public ResponseEntity<PedidoMesaDTO> marcarListos(@PathVariable Long id) {
+        PedidoMesaDTO pedidoActualizado = pedidoMesaService.marcarPendientesComoListos(id);
         return ResponseEntity.ok(pedidoActualizado);
     }
 }

@@ -28,6 +28,15 @@ public class DetallePedidoMesa {
 
     private Double precioUnitario;
 
+    // --- ¡¡NUEVO CAMPO AÑADIDO!! ---
+    /**
+     * Estado de este detalle específico.
+     * PENDIENTE: Recién añadido por el mesero, listo para cocina.
+     * LISTO: Cocina ya lo preparó.
+     * ENTREGADO: (Opcional) Mesero lo entregó.
+     */
+    private String estadoDetalle;
+
     // Getters y setters
 
     public Long getIdDetallePedidoMesa() {
@@ -68,5 +77,13 @@ public class DetallePedidoMesa {
 
     public void setPrecioUnitario(Double precioUnitario) {
         this.precioUnitario = precioUnitario;
+    }
+
+    public String getEstadoDetalle() {
+        return estadoDetalle;
+    }
+
+    public void setEstadoDetalle(String estadoDetalle) {
+        this.estadoDetalle = estadoDetalle;
     }
 }
