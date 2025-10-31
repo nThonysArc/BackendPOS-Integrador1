@@ -1,16 +1,17 @@
 package com.Pos.RestauranteApp.config;
 
-import com.Pos.RestauranteApp.dto.EmpleadoDTO;
-import com.Pos.RestauranteApp.model.Mesa; // Importar Mesa
-import com.Pos.RestauranteApp.model.Rol;
-import com.Pos.RestauranteApp.repository.EmpleadoRepository;
-import com.Pos.RestauranteApp.repository.MesaRepository; // Importar MesaRepository
-import com.Pos.RestauranteApp.repository.RolRepository;
-import com.Pos.RestauranteApp.service.EmpleadoService;
-import org.springframework.boot.CommandLineRunner;
+import java.util.List;
+
+import org.springframework.boot.CommandLineRunner; // Importar Mesa
 import org.springframework.stereotype.Component;
 
-import java.util.List; // Importar List
+import com.Pos.RestauranteApp.dto.EmpleadoDTO;
+import com.Pos.RestauranteApp.model.Mesa; // Importar MesaRepository
+import com.Pos.RestauranteApp.model.Rol;
+import com.Pos.RestauranteApp.repository.EmpleadoRepository;
+import com.Pos.RestauranteApp.repository.MesaRepository;
+import com.Pos.RestauranteApp.repository.RolRepository;
+import com.Pos.RestauranteApp.service.EmpleadoService; // Importar List
 
 @Component
 public class DataInitializer implements CommandLineRunner {
@@ -97,7 +98,6 @@ public class DataInitializer implements CommandLineRunner {
             mesa5.setNumeroMesa(5);
             mesa5.setCapacidad(6); // Capacidad entre 4 y 8
             mesa5.setEstado(Mesa.EstadoMesa.DISPONIBLE);
-
             // Guardar todas las mesas
             mesaRepository.saveAll(List.of(mesa1, mesa2, mesa3, mesa4, mesa5));
             System.out.println("5 mesas creadas y disponibles.");
