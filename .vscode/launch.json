@@ -13,7 +13,8 @@
         "DB_PORT": "24049", 
         "DB_NAME": "restaurante_pos",
         "DB_USER": "root",
-        "DB_PASSWORD": "flMqQYZhqFDxGxmkHpkRihrBLDEzPrys"
+        "DB_PASSWORD": "flMqQYZhqFDxGxmkHpkRihrBLDEzPrys",
+        "JWT_SECRET": "MIACLAVESECRETAESMUYLARGAYSEGURAPARAELBACKENDPOS123456789"
       }
     }
   ]

@@ -58,6 +58,10 @@ public class SecurityConfig {
                 .authorizeHttpRequests(authz -> authz
                         // Permitimos el login
                         .requestMatchers("/api/auth/**").permitAll()
+
+                        // Permitimos la conexión WebSocket
+                        .requestMatchers("/ws/**").permitAll()
+                        
                         // Permitir el acceso a la UI y la definición de la API de Swagger
                         .requestMatchers(
                                 "/v3/api-docs/**",

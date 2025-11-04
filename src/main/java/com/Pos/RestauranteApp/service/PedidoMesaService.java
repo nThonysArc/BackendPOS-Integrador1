@@ -5,23 +5,25 @@ import java.util.List; // <-- AÑADIDO
 import java.util.Optional;
 import java.util.stream.Collectors; // <-- AÑADIDO
 
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional; // <-- AÑADIDO
 
-import com.Pos.RestauranteApp.dto.DetallePedidoMesaDTO; // <-- AÑADIR IMPORT
- import com.Pos.RestauranteApp.dto.PedidoMesaDTO;
-import com.Pos.RestauranteApp.exception.ResourceNotFoundException;
-import com.Pos.RestauranteApp.model.DetallePedidoMesa;
+import com.Pos.RestauranteApp.dto.DetallePedidoMesaDTO;
+import com.Pos.RestauranteApp.dto.PedidoMesaDTO;
+import com.Pos.RestauranteApp.exception.ResourceNotFoundException; // <-- AÑADIR IMPORT
+ import com.Pos.RestauranteApp.model.DetallePedidoMesa;
 import com.Pos.RestauranteApp.model.Empleado;
 import com.Pos.RestauranteApp.model.Mesa;
 import com.Pos.RestauranteApp.model.PedidoMesa;
 import com.Pos.RestauranteApp.model.PedidoMesa.EstadoPedido;
-import com.Pos.RestauranteApp.repository.DetallePedidoMesaRepository; // <-- AÑADIDO
+import com.Pos.RestauranteApp.repository.DetallePedidoMesaRepository;
 import com.Pos.RestauranteApp.repository.EmpleadoRepository;
-import com.Pos.RestauranteApp.repository.MesaRepository;
-import com.Pos.RestauranteApp.repository.PedidoMesaRepository; // <-- Añadir import
+import com.Pos.RestauranteApp.repository.MesaRepository; // <-- AÑADIDO
+import com.Pos.RestauranteApp.repository.PedidoMesaRepository;
 import com.Pos.RestauranteApp.repository.ProductoRepository;
+
 @Service
 public class PedidoMesaService {
 
@@ -31,21 +33,21 @@ public class PedidoMesaService {
     private final ProductoRepository productoRepository;
     // --- AÑADIDO ---
     private final DetallePedidoMesaRepository detallePedidoMesaRepository;
-
+    private final SimpMessagingTemplate messagingTemplate;
 
     public PedidoMesaService(PedidoMesaRepository pedidoMesaRepository,
-                             MesaRepository mesaRepository,
-                             EmpleadoRepository empleadoRepository,
-                             ProductoRepository productoRepository,
-                             // --- AÑADIDO ---
-                             DetallePedidoMesaRepository detallePedidoMesaRepository) {
-        this.pedidoMesaRepository = pedidoMesaRepository;
-        this.mesaRepository = mesaRepository;
-        this.empleadoRepository = empleadoRepository;
-        this.productoRepository = productoRepository;
-        // --- AÑADIDO ---
-        this.detallePedidoMesaRepository = detallePedidoMesaRepository;
-    }
+                         MesaRepository mesaRepository,
+                         EmpleadoRepository empleadoRepository,
+                         ProductoRepository productoRepository,
+                         DetallePedidoMesaRepository detallePedidoMesaRepository,
+                         SimpMessagingTemplate messagingTemplate) {
+    this.pedidoMesaRepository = pedidoMesaRepository;
+    this.mesaRepository = mesaRepository;
+    this.empleadoRepository = empleadoRepository;
+    this.productoRepository = productoRepository;
+    this.detallePedidoMesaRepository = detallePedidoMesaRepository;
+    this.messagingTemplate = messagingTemplate;
+}
 
     // Conversión Entidad → DTO
     private PedidoMesaDTO convertirADTO(PedidoMesa pedidoMesa) {
@@ -185,14 +187,10 @@ public class PedidoMesaService {
         mesa.setEstado(Mesa.EstadoMesa.OCUPADA);
         mesaRepository.save(mesa);
 
+        messagingTemplate.convertAndSend("/topic/pedidos", "NUEVO");
+
         return convertirADTO(pedidoGuardado);
     }
-
-    // --- ¡¡MÉTODO MODIFICADO!! ---
-    /**
-     * Actualiza un pedido existente. Usado para añadir más items.
-     * Solo recibe los items NUEVOS en el DTO.
-     */
     @Transactional
     public PedidoMesaDTO actualizar(Long id, PedidoMesaDTO dto) {
         // 1. Buscar el pedido existente
@@ -200,15 +198,13 @@ public class PedidoMesaService {
                 .orElseThrow(() -> new ResourceNotFoundException("Pedido no encontrado con id: " + id));
 
         // 2. Validar que no esté cerrado
-        if (pedido.getEstado() == EstadoPedido.CERRADO || pedido.getEstado() == EstadoPedido.CANCELADO) {
-            throw new IllegalArgumentException("No se puede modificar un pedido cerrado o cancelado.");
+       if (pedido.getEstado() == EstadoPedido.CERRADO || 
+            pedido.getEstado() == EstadoPedido.CANCELADO ||
+            pedido.getEstado() == EstadoPedido.LISTO_PARA_ENTREGAR) {
+            
+            throw new IllegalArgumentException("No se puede modificar un pedido que ya está listo para entregar, cerrado o cancelado."); // <-- Mensaje actualizado
         }
-
-        // 3. --- ¡¡ELIMINADO!! --- Ya no limpiamos detalles antiguos
-        //    detallePedidoMesaRepository.deleteAll(pedido.getDetalles());
-        //    pedido.getDetalles().clear();
-
-        // 4. Añadir nuevos detalles desde el DTO
+        //  Añadir nuevos detalles desde el DTO
         //    (El DTO solo trae los detalles nuevos)
         List<DetallePedidoMesa> nuevosDetalles = dto.getDetalles().stream().map(d -> {
             DetallePedidoMesa detalle = new DetallePedidoMesa();
@@ -217,11 +213,11 @@ public class PedidoMesaService {
                     .orElseThrow(() -> new ResourceNotFoundException("Producto no encontrado: " + d.getIdProducto())));
             detalle.setCantidad(d.getCantidad());
             detalle.setPrecioUnitario(d.getPrecioUnitario());
-            detalle.setEstadoDetalle("PENDIENTE"); // <-- ¡¡NUEVO!! Marcar como pendiente
+            detalle.setEstadoDetalle("PENDIENTE");
             return detalle;
         }).collect(Collectors.toList());
 
-        pedido.getDetalles().addAll(nuevosDetalles); // <-- ¡¡AÑADIMOS, NO REEMPLAZAMOS!!
+        pedido.getDetalles().addAll(nuevosDetalles); 
 
         // 5. Recalcular total (con todos los detalles, viejos y nuevos)
         pedido.setTotal(pedido.getDetalles().stream()
@@ -234,6 +230,9 @@ public class PedidoMesaService {
 
         // 7. Guardar
         PedidoMesa pedidoActualizado = pedidoMesaRepository.save(pedido);
+
+        messagingTemplate.convertAndSend("/topic/pedidos", "NUEVO");
+
         return convertirADTO(pedidoActualizado);
     }
 
@@ -265,6 +264,8 @@ public class PedidoMesaService {
 
         // Guardar el pedido actualizado
         PedidoMesa pedidoActualizado = pedidoMesaRepository.save(pedido);
+
+        messagingTemplate.convertAndSend("/topic/pedidos", "CERRADO");
 
         return convertirADTO(pedidoActualizado);
     }
@@ -342,6 +343,9 @@ public class PedidoMesaService {
         }
 
         PedidoMesa pedidoActualizado = pedidoMesaRepository.save(pedido);
+
+        messagingTemplate.convertAndSend("/topic/pedidos", "LISTO");
+
         return convertirADTO(pedidoActualizado);
     }
 
