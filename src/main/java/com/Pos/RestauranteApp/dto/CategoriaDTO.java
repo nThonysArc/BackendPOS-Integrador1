@@ -8,9 +8,7 @@ public class CategoriaDTO {
     @NotBlank(message = "El nombre no puede estar vacío") 
     private String nombre;
 
-    private Long idCategoriaPadre; // puede ser null si no tiene padre
-
-    // Constructor vacío (AÑADIDO por si no lo tenías)
+    private Long idCategoriaPadre; 
     public CategoriaDTO() {}
 
     public CategoriaDTO(Long idCategoria, String nombre, Long idCategoriaPadre) {

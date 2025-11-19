@@ -1,16 +1,17 @@
 package com.Pos.RestauranteApp.service;
 
+import java.util.List;
+import java.util.Optional;
+
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+
 import com.Pos.RestauranteApp.dto.EmpleadoDTO;
+import com.Pos.RestauranteApp.exception.ResourceNotFoundException;
 import com.Pos.RestauranteApp.model.Empleado;
 import com.Pos.RestauranteApp.model.Rol;
 import com.Pos.RestauranteApp.repository.EmpleadoRepository;
 import com.Pos.RestauranteApp.repository.RolRepository;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Service;
-import com.Pos.RestauranteApp.exception.ResourceNotFoundException;
-
-import java.util.List;
-import java.util.Optional;
 
 @Service
 public class EmpleadoService {
@@ -65,41 +66,32 @@ public class EmpleadoService {
     }
 
     public EmpleadoDTO guardar(EmpleadoDTO dto) {
-        // Validación básica de DNI (aunque @Valid debería cubrir esto)
         if (dto.getDni() == null || dto.getDni().isBlank()) {
-            // Considera lanzar BadRequestException si creas esa clase
             throw new IllegalArgumentException("El DNI del empleado es obligatorio");
         }
 
         Empleado empleado;
-        String contrasenaDelDto = dto.getContrasena(); // Guardamos la contraseña potencial del DTO
-
+        String contrasenaDelDto = dto.getContrasena(); 
         if (dto.getIdEmpleado() != null) {
-            // --- Lógica de ACTUALIZACIÓN ---
             empleado = empleadoRepository.findById(dto.getIdEmpleado())
                     .orElseThrow(() -> new ResourceNotFoundException("Empleado no encontrado para actualizar con id: " + dto.getIdEmpleado()));
 
-            // Actualizar campos que pueden cambiar
             empleado.setNombre(dto.getNombre());
             empleado.setDni(dto.getDni());
-            empleado.setUsuario(dto.getUsuario()); // Asegúrate de manejar conflictos de unicidad si es necesario
+            empleado.setUsuario(dto.getUsuario()); 
             Rol rol = rolRepository.findById(dto.getIdRol())
                     .orElseThrow(() -> new ResourceNotFoundException("Rol no encontrado con id: " + dto.getIdRol()));
             empleado.setRol(rol);
 
-            // Actualizar contraseña SOLO si se envió una nueva en el DTO
             if (contrasenaDelDto != null && !contrasenaDelDto.isBlank()) {
-                // Validar longitud mínima si es necesario (aunque @Valid debería cubrirlo)
                 if (contrasenaDelDto.length() < 6) {
                     throw new IllegalArgumentException("La nueva contraseña debe tener al menos 6 caracteres");
                 }
                 empleado.setContrasena(passwordEncoder.encode(contrasenaDelDto));
                 System.out.println("Contraseña actualizada y codificada para usuario: " + empleado.getUsuario()); // Log de depuración
             }
-            // Si no se envió contraseña nueva en el DTO, no se toca la existente (ya hasheada).
 
         } else {
-            // --- Lógica de CREACIÓN ---
             if (contrasenaDelDto == null || contrasenaDelDto.isBlank()) {
                 throw new IllegalArgumentException("La contraseña es obligatoria para nuevos empleados");
             }
@@ -108,16 +100,14 @@ public class EmpleadoService {
                 throw new IllegalArgumentException("La contraseña debe tener al menos 6 caracteres");
             }
 
-            // Creamos una nueva instancia de Empleado
             empleado = new Empleado();
             empleado.setNombre(dto.getNombre());
             empleado.setDni(dto.getDni());
-            empleado.setUsuario(dto.getUsuario()); // Manejar unicidad
+            empleado.setUsuario(dto.getUsuario()); 
             Rol rol = rolRepository.findById(dto.getIdRol())
                     .orElseThrow(() -> new ResourceNotFoundException("Rol no encontrado con id: " + dto.getIdRol()));
             empleado.setRol(rol);
 
-            // Codificamos la contraseña proporcionada
             empleado.setContrasena(passwordEncoder.encode(contrasenaDelDto));
             System.out.println("Contraseña codificada para nuevo usuario: " + empleado.getUsuario()); // Log de depuración
         }

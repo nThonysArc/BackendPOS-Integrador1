@@ -21,8 +21,6 @@ public class EmpleadoDTO {
     @NotNull(message = "El idRol no puede ser nulo")
     private Long idRol;
 
-    // Dejamos que la contraseña sea opcional en el DTO.
-    // El servicio ya valida si es nueva o es una actualización.
     @Size(min = 6, message = "La contraseña debe tener al menos 6 caracteres")
     private String contrasena;
 

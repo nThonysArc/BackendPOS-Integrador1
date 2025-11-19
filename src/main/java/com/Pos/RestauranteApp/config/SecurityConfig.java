@@ -34,7 +34,6 @@ public class SecurityConfig {
         return new BCryptPasswordEncoder();
     }
 
-    // 1. Proveedor de Autenticación (le dice a Spring cómo buscar usuarios y validar claves)
     @Bean
     public AuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
@@ -43,13 +42,11 @@ public class SecurityConfig {
         return authProvider;
     }
 
-    // 2. Gestor de Autenticación (El que usa el AuthController)
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();
     }
 
-    // 3. Cadena de Filtros de Seguridad (Actualizada)
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
@@ -62,14 +59,12 @@ public class SecurityConfig {
                         // Permitimos la conexión WebSocket
                         .requestMatchers("/ws/**").permitAll()
                         
-                        // Permitir el acceso a la UI y la definición de la API de Swagger
                         .requestMatchers(
                                 "/v3/api-docs/**",
                                 "/swagger-ui/**",
                                 "/swagger-ui.html"
                         ).permitAll()
 
-                        // Todas las demás peticiones requieren autenticación
                         .anyRequest().authenticated()
                 )
                 .authenticationProvider(authenticationProvider())

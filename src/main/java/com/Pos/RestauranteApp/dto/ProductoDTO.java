@@ -21,9 +21,7 @@ public class ProductoDTO {
     private String categoriaNombre;
 
     @NotNull(message = "El ID de la categoría no puede ser nulo")
-    private Long idCategoria; // para poder crear y actualizar
-
-    //Contructor vacio
+    private Long idCategoria;
     public ProductoDTO() {}
     // Constructor
     public ProductoDTO(Long idProducto, String nombre, String descripcion, Double precio, String categoriaNombre, Long idCategoria) {

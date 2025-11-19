@@ -1,15 +1,24 @@
 package com.Pos.RestauranteApp.controller;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
 import com.Pos.RestauranteApp.dto.CategoriaDTO;
 import com.Pos.RestauranteApp.model.Categoria;
 import com.Pos.RestauranteApp.service.CategoriaService;
-import jakarta.validation.Valid; // ⬅️ AÑADIDO
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-import java.util.stream.Collectors;
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/categorias")
@@ -21,7 +30,6 @@ public class CategoriaController {
         this.categoriaService = categoriaService;
     }
 
-    //  Listar todas las categorías (Cualquiera autenticado)
     @GetMapping
     @PreAuthorize("isAuthenticated()")
     public List<CategoriaDTO> listarCategorias() {
@@ -31,7 +39,6 @@ public class CategoriaController {
                 .collect(Collectors.toList());
     }
 
-    //  Obtener una categoría por ID (Cualquiera autenticado)
     @GetMapping("/{id}")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<CategoriaDTO> obtenerCategoria(@PathVariable Long id) {
@@ -40,7 +47,6 @@ public class CategoriaController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    // --- MODIFICADO: Ahora acepta CategoriaDTO ---
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<CategoriaDTO> crearCategoria(@Valid @RequestBody CategoriaDTO categoriaDTO) {
@@ -48,7 +54,6 @@ public class CategoriaController {
         return ResponseEntity.ok(categoriaService.convertirADTO(nuevaCategoria));
     }
 
-    // --- MODIFICADO: Ahora acepta CategoriaDTO ---
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<CategoriaDTO> actualizarCategoria(@PathVariable Long id, @Valid @RequestBody CategoriaDTO categoriaDTO) {
@@ -56,7 +61,6 @@ public class CategoriaController {
         return ResponseEntity.ok(categoriaService.convertirADTO(categoriaActualizada));
     }
 
-    //  Eliminar una categoría (Solo Admin)
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> eliminarCategoria(@PathVariable Long id) {

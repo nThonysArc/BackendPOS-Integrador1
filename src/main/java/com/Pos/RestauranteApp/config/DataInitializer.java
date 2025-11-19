@@ -212,7 +212,6 @@ public class DataInitializer implements CommandLineRunner {
         p.setPrecio(precio);
         p.setCategoria(categoria);
         p.setActivo(true);
-        // Usamos el nombre también como descripción por defecto
         p.setDescripcion(nombre); 
         productoRepository.save(p);
     }

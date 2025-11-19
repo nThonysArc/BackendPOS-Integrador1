@@ -22,20 +22,19 @@ public class DetallePedidoMesaDTO {
 
     private Double subtotal;
 
-    // --- ¡¡NUEVO CAMPO AÑADIDO!! ---
     private String estadoDetalle;
 
     public DetallePedidoMesaDTO() {}
 
     public DetallePedidoMesaDTO(Long idDetallePedidoMesa, Long idProducto, String nombreProducto,
-                                Integer cantidad, Double precioUnitario, String estadoDetalle) { // <-- Modificado
+                                Integer cantidad, Double precioUnitario, String estadoDetalle) { 
         this.idDetallePedidoMesa = idDetallePedidoMesa;
         this.idProducto = idProducto;
         this.nombreProducto = nombreProducto;
         this.cantidad = cantidad;
         this.precioUnitario = precioUnitario;
         this.subtotal = cantidad * precioUnitario;
-        this.estadoDetalle = estadoDetalle; // <-- Añadido
+        this.estadoDetalle = estadoDetalle; 
     }
 
     // Getters y setters
@@ -57,7 +56,6 @@ public class DetallePedidoMesaDTO {
     public Double getSubtotal() { return subtotal; }
     public void setSubtotal(Double subtotal) { this.subtotal = subtotal; }
 
-    // --- NUEVO GETTER/SETTER ---
     public String getEstadoDetalle() { return estadoDetalle; }
     public void setEstadoDetalle(String estadoDetalle) { this.estadoDetalle = estadoDetalle; }
 }
