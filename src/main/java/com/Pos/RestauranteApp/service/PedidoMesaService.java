@@ -12,8 +12,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.Pos.RestauranteApp.dto.DetallePedidoMesaDTO;
 import com.Pos.RestauranteApp.dto.PedidoMesaDTO;
+import com.Pos.RestauranteApp.dto.WebSocketMessageDTO; // <-- IMPORTACIÓN AÑADIDA
 import com.Pos.RestauranteApp.exception.ResourceNotFoundException; 
- import com.Pos.RestauranteApp.model.DetallePedidoMesa;
+import com.Pos.RestauranteApp.model.DetallePedidoMesa;
 import com.Pos.RestauranteApp.model.Empleado;
 import com.Pos.RestauranteApp.model.Mesa;
 import com.Pos.RestauranteApp.model.PedidoMesa;
@@ -35,18 +36,18 @@ public class PedidoMesaService {
     private final SimpMessagingTemplate messagingTemplate;
 
     public PedidoMesaService(PedidoMesaRepository pedidoMesaRepository,
-                         MesaRepository mesaRepository,
-                         EmpleadoRepository empleadoRepository,
-                         ProductoRepository productoRepository,
-                         DetallePedidoMesaRepository detallePedidoMesaRepository,
-                         SimpMessagingTemplate messagingTemplate) {
-    this.pedidoMesaRepository = pedidoMesaRepository;
-    this.mesaRepository = mesaRepository;
-    this.empleadoRepository = empleadoRepository;
-    this.productoRepository = productoRepository;
-    this.detallePedidoMesaRepository = detallePedidoMesaRepository;
-    this.messagingTemplate = messagingTemplate;
-}
+                             MesaRepository mesaRepository,
+                             EmpleadoRepository empleadoRepository,
+                             ProductoRepository productoRepository,
+                             DetallePedidoMesaRepository detallePedidoMesaRepository,
+                             SimpMessagingTemplate messagingTemplate) {
+        this.pedidoMesaRepository = pedidoMesaRepository;
+        this.mesaRepository = mesaRepository;
+        this.empleadoRepository = empleadoRepository;
+        this.productoRepository = productoRepository;
+        this.detallePedidoMesaRepository = detallePedidoMesaRepository;
+        this.messagingTemplate = messagingTemplate;
+    }
 
     private PedidoMesaDTO convertirADTO(PedidoMesa pedidoMesa) {
         List<DetallePedidoMesaDTO> detallesDTO = List.of();
@@ -76,6 +77,7 @@ public class PedidoMesaService {
                 detallesDTO
         );
     }
+
     private PedidoMesa convertirAEntidad(PedidoMesaDTO dto, boolean esActualizacion) {
         PedidoMesa pedido;
 
@@ -146,7 +148,6 @@ public class PedidoMesaService {
                 .orElse(null); 
     }
 
-
     @Transactional
     public PedidoMesaDTO guardar(PedidoMesaDTO dto) {
         PedidoMesa pedido = convertirAEntidad(dto, false); 
@@ -155,10 +156,15 @@ public class PedidoMesaService {
         mesa.setEstado(Mesa.EstadoMesa.OCUPADA);
         mesaRepository.save(mesa);
 
-        messagingTemplate.convertAndSend("/topic/pedidos", "NUEVO");
+        PedidoMesaDTO respuestaDTO = convertirADTO(pedidoGuardado);
 
-        return convertirADTO(pedidoGuardado);
+        // CAMBIO: Enviar objeto completo con tipo de evento
+        messagingTemplate.convertAndSend("/topic/pedidos", 
+            new WebSocketMessageDTO("PEDIDO_CREADO", respuestaDTO));
+
+        return respuestaDTO;
     }
+
     @Transactional
     public PedidoMesaDTO actualizar(Long id, PedidoMesaDTO dto) {
         // 1. Buscar el pedido existente
@@ -170,7 +176,7 @@ public class PedidoMesaService {
             pedido.getEstado() == EstadoPedido.CANCELADO ||
             pedido.getEstado() == EstadoPedido.LISTO_PARA_ENTREGAR) {
             
-            throw new IllegalArgumentException("No se puede modificar un pedido que ya está listo para entregar, cerrado o cancelado."); // <-- Mensaje actualizado
+            throw new IllegalArgumentException("No se puede modificar un pedido que ya está listo para entregar, cerrado o cancelado.");
         }
         //  Añadir nuevos detalles desde el DTO
         //    (El DTO solo trae los detalles nuevos)
@@ -191,16 +197,18 @@ public class PedidoMesaService {
                 .mapToDouble(d -> d.getCantidad() * d.getPrecioUnitario())
                 .sum());
 
-      
         pedido.setEstado(EstadoPedido.ABIERTO);
 
         PedidoMesa pedidoActualizado = pedidoMesaRepository.save(pedido);
 
-        messagingTemplate.convertAndSend("/topic/pedidos", "NUEVO");
+        PedidoMesaDTO respuestaDTO = convertirADTO(pedidoActualizado);
 
-        return convertirADTO(pedidoActualizado);
+        // CAMBIO: Enviar objeto completo con tipo de evento
+        messagingTemplate.convertAndSend("/topic/pedidos", 
+            new WebSocketMessageDTO("PEDIDO_ACTUALIZADO", respuestaDTO));
+
+        return respuestaDTO;
     }
-
 
     @Transactional
     public void eliminar(Long id) {
@@ -213,6 +221,7 @@ public class PedidoMesaService {
 
         pedidoMesaRepository.delete(pedido);
     }
+
     @Transactional
     public PedidoMesaDTO cerrarPedido(Long id) {
         PedidoMesa pedido = pedidoMesaRepository.findById(id)
@@ -229,10 +238,15 @@ public class PedidoMesaService {
         // Guardar el pedido actualizado
         PedidoMesa pedidoActualizado = pedidoMesaRepository.save(pedido);
 
-        messagingTemplate.convertAndSend("/topic/pedidos", "CERRADO");
+        PedidoMesaDTO respuestaDTO = convertirADTO(pedidoActualizado);
 
-        return convertirADTO(pedidoActualizado);
+        // CAMBIO: Enviar objeto completo con tipo de evento
+        messagingTemplate.convertAndSend("/topic/pedidos", 
+            new WebSocketMessageDTO("PEDIDO_CERRADO", respuestaDTO));
+
+        return respuestaDTO;
     }
+
     @Transactional
     public PedidoMesaDTO cambiarEstadoPedido(Long id, String nuevoEstadoStr) {
         PedidoMesa pedido = pedidoMesaRepository.findById(id)
@@ -260,6 +274,7 @@ public class PedidoMesaService {
             throw new IllegalArgumentException("Estado de pedido no válido: " + nuevoEstadoStr);
         }
     }
+
     @Transactional
     public PedidoMesaDTO marcarPendientesComoListos(Long id) {
         PedidoMesa pedido = pedidoMesaRepository.findById(id)
@@ -277,7 +292,6 @@ public class PedidoMesaService {
         if (itemsPendientesEncontrados) {
             pedido.setEstado(EstadoPedido.LISTO_PARA_ENTREGAR);
         } else {
-
             boolean hayPendientes = pedido.getDetalles().stream()
                 .anyMatch(d -> "PENDIENTE".equalsIgnoreCase(d.getEstadoDetalle()));
                 
@@ -288,9 +302,12 @@ public class PedidoMesaService {
 
         PedidoMesa pedidoActualizado = pedidoMesaRepository.save(pedido);
 
-        messagingTemplate.convertAndSend("/topic/pedidos", "LISTO");
+        PedidoMesaDTO respuestaDTO = convertirADTO(pedidoActualizado);
 
-        return convertirADTO(pedidoActualizado);
+        // CAMBIO: Enviar objeto completo con tipo de evento
+        messagingTemplate.convertAndSend("/topic/pedidos", 
+            new WebSocketMessageDTO("PEDIDO_LISTO", respuestaDTO));
+
+        return respuestaDTO;
     }
-
 }
