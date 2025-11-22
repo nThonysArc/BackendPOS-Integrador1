@@ -1,48 +1,59 @@
 package com.Pos.RestauranteApp.controller;
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
 
+import java.io.IOException;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.Pos.RestauranteApp.model.Imagen;
+import com.Pos.RestauranteApp.repository.ImagenRepository;
+
 @RestController
 @RequestMapping("/api/media")
+@CrossOrigin(origins = "*") // Permitir acceso desde cualquier lado
 public class MediaController {
 
-    // Ruta absoluta fuera del repo (ajústala según tu servidor)
-    private final String UPLOAD_DIR = "D:/Utp/Ciclo 8/Integrador 1/PrincipalPOS/imagenes-productos/";
+    @Autowired
+    private ImagenRepository imagenRepository;
 
+    // 1. SUBIR IMAGEN (Guarda en BD Railway)
     @PostMapping("/upload")
     public ResponseEntity<String> uploadImage(@RequestParam("file") MultipartFile file) {
         try {
-            // Crear directorio si no existe
-            File directory = new File(UPLOAD_DIR);
-            if (!directory.exists()) {
-                directory.mkdirs();
-            }
+            Imagen imagen = new Imagen();
+            imagen.setNombre(file.getOriginalFilename());
+            imagen.setTipo(file.getContentType());
+            imagen.setDatos(file.getBytes()); // Convertir archivo a bytes
 
-            // Generar nombre único para evitar duplicados
-            String fileName = System.currentTimeMillis() + "_" + file.getOriginalFilename();
-            Path filePath = Paths.get(UPLOAD_DIR, fileName);
+            Imagen guardada = imagenRepository.save(imagen);
 
-            // Guardar archivo
-            Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
-
-            // URL accesible (gracias al ResourceHandler en WebConfig)
-            String fileUrl = "http://localhost:8080/images/" + fileName;
+            // Devolvemos la URL relativa. El frontend le pondrá el dominio.
+            // Ejemplo de respuesta: "/api/media/15"
+            String fileUrl = "/api/media/" + guardada.getId();
 
             return ResponseEntity.ok(fileUrl);
         } catch (IOException e) {
-            return ResponseEntity.internalServerError().body("Error al subir imagen");
+            e.printStackTrace();
+            return ResponseEntity.internalServerError().body("Error al subir imagen a la base de datos");
         }
     }
-}
 
+    // 2. OBTENER IMAGEN (Lee de BD Railway)
+    @GetMapping("/{id}")
+    public ResponseEntity<byte[]> getImagen(@PathVariable Long id) {
+        return imagenRepository.findById(id)
+                .map(imagen -> ResponseEntity.ok()
+                        .contentType(MediaType.parseMediaType(imagen.getTipo() != null ? imagen.getTipo() : "image/jpeg"))
+                        .body(imagen.getDatos())) // Devuelve los bytes directos
+                .orElse(ResponseEntity.notFound().build());
+    }
+}
