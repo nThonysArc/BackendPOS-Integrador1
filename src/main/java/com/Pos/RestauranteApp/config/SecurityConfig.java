@@ -47,29 +47,34 @@ public class SecurityConfig {
         return config.getAuthenticationManager();
     }
 
-    @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        http
-                .csrf(csrf -> csrf.disable())
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests(authz -> authz
-                        // Permitimos el login
-                        .requestMatchers("/api/auth/**").permitAll()
+   @Bean
+public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    http
+            .csrf(csrf -> csrf.disable())
+            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            .authorizeHttpRequests(authz -> authz
+                    // Permitimos el login
+                    .requestMatchers("/api/auth/**").permitAll()
 
-                        // Permitimos la conexión WebSocket
-                        .requestMatchers("/ws/**").permitAll()
-                        
-                        .requestMatchers(
-                                "/v3/api-docs/**",
-                                "/swagger-ui/**",
-                                "/swagger-ui.html"
-                        ).permitAll()
+                    // Permitimos la conexión WebSocket
+                    .requestMatchers("/ws/**").permitAll()
+                    
+                    // --- AGREGA ESTA LÍNEA ---
+                    // Permitir ver/descargar imágenes sin token
+                    .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/media/**").permitAll() 
+                    // -------------------------
 
-                        .anyRequest().authenticated()
-                )
-                .authenticationProvider(authenticationProvider())
-                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+                    .requestMatchers(
+                            "/v3/api-docs/**",
+                            "/swagger-ui/**",
+                            "/swagger-ui.html"
+                    ).permitAll()
 
-        return http.build();
+                    .anyRequest().authenticated()
+            )
+            .authenticationProvider(authenticationProvider())
+            .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+
+    return http.build();
     }
 }
