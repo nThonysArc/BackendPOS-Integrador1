@@ -1,14 +1,15 @@
 package com.Pos.RestauranteApp.service;
+import java.util.List;
+import java.util.Optional;
+
+import org.springframework.stereotype.Service;
+
 import com.Pos.RestauranteApp.dto.ProductoDTO;
+import com.Pos.RestauranteApp.exception.ResourceNotFoundException;
 import com.Pos.RestauranteApp.model.Categoria;
 import com.Pos.RestauranteApp.model.Producto;
 import com.Pos.RestauranteApp.repository.CategoriaRepository;
 import com.Pos.RestauranteApp.repository.ProductoRepository;
-import org.springframework.stereotype.Service;
-import com.Pos.RestauranteApp.exception.ResourceNotFoundException;
-
-import java.util.List;
-import java.util.Optional;
 
 @Service
 public class ProductoService {
@@ -29,7 +30,8 @@ public class ProductoService {
                 producto.getDescripcion(),
                 producto.getPrecio(),
                 producto.getCategoria().getNombre(),
-                producto.getCategoria().getIdCategoria()
+                producto.getCategoria().getIdCategoria(),
+                producto.getImagenUrl()
         );
     }
     // DTO → Entidad
@@ -40,6 +42,7 @@ public class ProductoService {
         producto.setDescripcion(dto.getDescripcion());
         producto.setPrecio(dto.getPrecio());
         producto.setActivo(true);
+        producto.setImagenUrl(dto.getImagenUrl());
 
         // buscar la categoría por id
         Categoria categoria = categoriaRepository.findById(dto.getIdCategoria())

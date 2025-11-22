@@ -7,6 +7,7 @@ import jakarta.validation.constraints.Size;
 public class ProductoDTO {
 
     private Long idProducto;
+    private String imagenUrl;
 
     @NotBlank(message = "El nombre del producto no puede estar vacío")
     @Size(min = 3, max = 100, message = "El nombre debe tener entre 3 y 100 caracteres")
@@ -22,15 +23,19 @@ public class ProductoDTO {
 
     @NotNull(message = "El ID de la categoría no puede ser nulo")
     private Long idCategoria;
+
+    
+
     public ProductoDTO() {}
     // Constructor
-    public ProductoDTO(Long idProducto, String nombre, String descripcion, Double precio, String categoriaNombre, Long idCategoria) {
+    public ProductoDTO(Long idProducto, String nombre, String descripcion, Double precio, String categoriaNombre, Long idCategoria, String imagenUrl) {
         this.idProducto = idProducto;
         this.nombre = nombre;
         this.descripcion = descripcion;
         this.precio = precio;
         this.categoriaNombre = categoriaNombre;
         this.idCategoria = idCategoria;
+        this.imagenUrl = imagenUrl;
     }
 
     // Getters y setters
@@ -81,4 +86,7 @@ public class ProductoDTO {
     public void setIdCategoria(Long idCategoria) {
         this.idCategoria = idCategoria;
     }
+
+    public String getImagenUrl() { return imagenUrl; }
+    public void setImagenUrl(String imagenUrl) { this.imagenUrl = imagenUrl; }
 }
