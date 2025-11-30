@@ -31,7 +31,7 @@ public class CategoriaController {
     }
 
     @GetMapping
-    @PreAuthorize("isAuthenticated()")
+    //@PreAuthorize("isAuthenticated()")
     public List<CategoriaDTO> listarCategorias() {
         return categoriaService.listarCategorias()
                 .stream()
