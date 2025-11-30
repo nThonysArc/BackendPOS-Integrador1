@@ -1,5 +1,7 @@
 package com.Pos.RestauranteApp.config;
 
+import java.util.List;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -14,7 +16,10 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter; // Importación necesaria
+import org.springframework.web.cors.CorsConfiguration; // Importación necesaria
+import org.springframework.web.cors.CorsConfigurationSource; // Importación necesaria
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource; // Importación necesaria
 
 @Configuration
 @EnableWebSecurity
@@ -47,31 +52,46 @@ public class SecurityConfig {
         return config.getAuthenticationManager();
     }
 
-   @Bean
-public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-    http
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        http
             .csrf(csrf -> csrf.disable())
+            .cors(cors -> cors.configurationSource(corsConfigurationSource())) // <--- ¡ESTA LÍNEA ES CRUCIAL!
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(authz -> authz
                     .requestMatchers("/api/auth/**").permitAll()
                     .requestMatchers("/ws/**").permitAll()
-                   .requestMatchers("/ws/**").permitAll()
-                   .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/media/**").permitAll()
+                    // Endpoints públicos para la Web
                     .requestMatchers("/api/web/auth/**").permitAll()
                     .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/productos/**").permitAll()
                     .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/categorias/**").permitAll()
                     .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/media/**").permitAll()
+                    // Swagger
                     .requestMatchers(
                             "/v3/api-docs/**",
                             "/swagger-ui/**",
                             "/swagger-ui.html"
                     ).permitAll()
-
                     .anyRequest().authenticated()
             )
             .authenticationProvider(authenticationProvider())
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
-    return http.build();
+        return http.build();
+    }
+
+    // Definición del Bean de CORS
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        // Permite el frontend local y el desplegado (o * para todos)
+        configuration.setAllowedOriginPatterns(List.of("*")); 
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
+        configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "X-Requested-With"));
+        configuration.setAllowCredentials(true);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
     }
 }
