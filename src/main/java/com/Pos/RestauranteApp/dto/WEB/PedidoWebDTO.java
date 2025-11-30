@@ -10,33 +10,31 @@ import jakarta.validation.constraints.NotNull;
 
 public class PedidoWebDTO {
 
-    private Long idPedidoWeb; // Null al crear, lleno al responder
-
+    private Long idPedidoWeb; 
     @NotNull(message = "El ID del cliente es obligatorio")
     private Long idClienteWeb;
     
     private String nombreCliente; // Para mostrar en el POS fácilmente
 
-    private LocalDateTime fechaHora; // Asignado por backend, pero útil en respuesta
+    private LocalDateTime fechaHora; // Asignado por backend
     
     private String estado; // PENDIENTE, CONFIRMADO, etc.
 
-    // --- Datos de Entrega (Formulario del Checkout) ---
     @NotBlank(message = "La dirección de entrega es obligatoria")
     private String direccionEntrega;
 
     @NotBlank(message = "El teléfono de contacto es obligatorio")
     private String telefonoContacto;
 
-    private String referencia; // Ej: "Frente al parque"
+    private String referencia; 
 
     @NotBlank(message = "El método de pago es obligatorio")
     private String metodoPago; // "EFECTIVO", "YAPE", "TARJETA"
 
     private Double total;
 
-    // --- El Carrito de Compras ---
-    @Valid // Valida cada objeto dentro de la lista
+    // --- Carrito de Compras ---
+    @Valid 
     @NotEmpty(message = "El pedido debe tener al menos un producto")
     private List<DetallePedidoWebDTO> detalles;
 

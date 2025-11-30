@@ -240,17 +240,15 @@ public class DataInitializer implements CommandLineRunner {
         p.setDescripcion(nombre);
 
         // LÓGICA DE CARGA LOCAL DEFENSIVA
-        // Verifica si nos pasaron un nombre de archivo Y si tenemos una ruta configurada
+        // Verifica si se pasó un nombre de archivo Y si tenemos una ruta configurada
         if (nombreArchivoImagen != null && seedPath != null && !seedPath.isBlank()) {
             File archivoLocal = new File(seedPath + nombreArchivoImagen);
 
             // VERIFICACIÓN CRÍTICA: Solo intenta leer si el archivo EXISTE físicamente
-            // Si estás en Railway, esto será false y no pasará nada (no hay error).
             if (archivoLocal.exists() && !archivoLocal.isDirectory()) {
                 try (FileInputStream fis = new FileInputStream(archivoLocal)) {
                     // 1. Leer bytes del disco local
                     byte[] datos = fis.readAllBytes();
-
                     // 2. Guardar en la Base de Datos (tabla imagenes)
                     Imagen imagen = new Imagen();
                     imagen.setNombre(nombreArchivoImagen);
@@ -260,7 +258,6 @@ public class DataInitializer implements CommandLineRunner {
                     imagen.setDatos(datos);
                     
                     Imagen imagenGuardada = imagenRepository.save(imagen);
-
                     // 3. Enlazar la URL generada al producto
                     // El frontend usará esta URL para pedir la imagen a la BD
                     p.setImagenUrl("/api/media/" + imagenGuardada.getId());
@@ -271,7 +268,6 @@ public class DataInitializer implements CommandLineRunner {
                     System.err.println("⚠️ Error al leer archivo local '" + nombreArchivoImagen + "': " + e.getMessage());
                 }
             } else {
-                // Mensaje informativo (normal en producción)
                 System.out.println("Imagen no encontrada en ruta local (Omitiendo): " + nombreArchivoImagen);
             }
         }

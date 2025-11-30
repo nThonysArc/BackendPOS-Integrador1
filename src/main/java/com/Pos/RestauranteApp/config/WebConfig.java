@@ -8,6 +8,5 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 public class WebConfig implements WebMvcConfigurer {
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
-        // Ya no mapeamos archivos locales porque usamos la Base de Datos.
     }
 }

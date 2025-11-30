@@ -16,7 +16,7 @@ import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/web/auth")
-@CrossOrigin(origins = "*") // Importante para permitir peticiones desde el navegador (CORS)
+@CrossOrigin(origins = "*") 
 public class WebAuthController {
 
     private final ClienteWebService clienteWebService;
@@ -27,7 +27,6 @@ public class WebAuthController {
 
     @PostMapping("/register")
     public ResponseEntity<AuthResponse> registrar(@Valid @RequestBody RegistroClienteDTO dto) {
-        // Retorna el token para que el usuario quede logueado inmediatamente
         return ResponseEntity.ok(clienteWebService.registrarCliente(dto));
     }
 

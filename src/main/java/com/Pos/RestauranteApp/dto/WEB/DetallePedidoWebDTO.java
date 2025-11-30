@@ -8,18 +8,17 @@ public class DetallePedidoWebDTO {
     @NotNull(message = "El ID del producto es obligatorio")
     private Long idProducto;
 
-    private String nombreProducto; // Útil para mostrar en respuestas, opcional al recibir
+    private String nombreProducto;
 
     @Min(value = 1, message = "La cantidad debe ser al menos 1")
     private Integer cantidad;
 
-    private Double precioUnitario; // Referencial, el backend debe validar el precio real
+    private Double precioUnitario; 
 
-    private String observaciones; // Ej: "Sin cebolla", "Poca sal"
+    private String observaciones; 
 
     public DetallePedidoWebDTO() {}
 
-    // Getters y Setters
     public Long getIdProducto() { return idProducto; }
     public void setIdProducto(Long idProducto) { this.idProducto = idProducto; }
 

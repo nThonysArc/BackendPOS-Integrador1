@@ -9,7 +9,7 @@ public class RegistroClienteDTO {
     @NotBlank(message = "El nombre es obligatorio")
     private String nombre;
 
-    private String apellidos; // Opcional
+    private String apellidos;
 
     @NotBlank(message = "El email es obligatorio")
     @Email(message = "El formato del email no es válido")
@@ -26,7 +26,6 @@ public class RegistroClienteDTO {
 
     public RegistroClienteDTO() {}
 
-    // Getters y Setters
     public String getNombre() { return nombre; }
     public void setNombre(String nombre) { this.nombre = nombre; }
 

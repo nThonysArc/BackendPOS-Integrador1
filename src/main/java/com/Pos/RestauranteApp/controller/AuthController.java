@@ -31,8 +31,6 @@ public class AuthController {
     private final UserDetailsService userDetailsService;
     private final JwtService jwtService;
     private final RegistroSesionRepository registroSesionRepository;
-
-    // Actualizar constructor
     public AuthController(AuthenticationManager authenticationManager, 
                           UserDetailsService userDetailsService, 
                           JwtService jwtService,

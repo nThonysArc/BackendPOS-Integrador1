@@ -36,7 +36,6 @@ public class PedidoWebController {
     }
 
     // --- ENDPOINT PARA EL POS DE ESCRITORIO (COCINA/ADMIN) ---
-    // La cocina llama a esto al abrirse para ver qué hay pendiente
     @GetMapping("/activos")
     @PreAuthorize("hasAnyRole('ADMIN', 'COCINA', 'CAJERO', 'MESERO')")
     public ResponseEntity<List<PedidoWebDTO>> listarPedidosActivos() {
