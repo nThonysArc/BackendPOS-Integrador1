@@ -1,0 +1,82 @@
+package com.Pos.RestauranteApp.service.WEB;
+
+import java.util.Collections;
+
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+
+import com.Pos.RestauranteApp.dto.WEB.LoginClienteDTO;
+import com.Pos.RestauranteApp.dto.WEB.RegistroClienteDTO;
+import com.Pos.RestauranteApp.dto.auth.AuthResponse;
+import com.Pos.RestauranteApp.model.WEB.ClienteWeb;
+import com.Pos.RestauranteApp.repository.WEB.ClienteWebRepository;
+import com.Pos.RestauranteApp.service.JwtService;
+
+@Service
+public class ClienteWebService {
+
+    private final ClienteWebRepository clienteRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final JwtService jwtService;
+
+    public ClienteWebService(ClienteWebRepository clienteRepository, 
+                             PasswordEncoder passwordEncoder, 
+                             JwtService jwtService) {
+        this.clienteRepository = clienteRepository;
+        this.passwordEncoder = passwordEncoder;
+        this.jwtService = jwtService;
+    }
+
+    // --- REGISTRO ---
+    public AuthResponse registrarCliente(RegistroClienteDTO dto) {
+        if (clienteRepository.existsByEmail(dto.getEmail())) {
+            throw new IllegalArgumentException("El correo electrónico ya está registrado.");
+        }
+
+        ClienteWeb cliente = new ClienteWeb();
+        cliente.setNombre(dto.getNombre());
+        cliente.setApellidos(dto.getApellidos());
+        cliente.setEmail(dto.getEmail());
+        cliente.setTelefono(dto.getTelefono());
+        cliente.setDireccionPrincipal(dto.getDireccion());
+        
+        // Encriptar contraseña
+        cliente.setPassword(passwordEncoder.encode(dto.getPassword()));
+
+        ClienteWeb guardado = clienteRepository.save(cliente);
+
+        // Auto-login después del registro: Generamos token
+        return generarRespuestaAuth(guardado);
+    }
+
+    // --- LOGIN ---
+    public AuthResponse autenticarCliente(LoginClienteDTO dto) {
+        ClienteWeb cliente = clienteRepository.findByEmail(dto.getEmail())
+                .orElseThrow(() -> new BadCredentialsException("Usuario o contraseña incorrectos"));
+
+        if (!passwordEncoder.matches(dto.getPassword(), cliente.getPassword())) {
+            throw new BadCredentialsException("Usuario o contraseña incorrectos");
+        }
+
+        return generarRespuestaAuth(cliente);
+    }
+
+    // Método auxiliar para crear la respuesta con Token
+    private AuthResponse generarRespuestaAuth(ClienteWeb cliente) {
+        // Adaptamos el ClienteWeb a UserDetails para que JwtService lo acepte
+        UserDetails userDetails = new User(
+                cliente.getEmail(), 
+                cliente.getPassword(), 
+                Collections.emptyList() // Los clientes web no tienen roles complejos por ahora
+        );
+
+        String token = jwtService.generateToken(userDetails);
+
+        // Retornamos la respuesta (reutilizamos el AuthResponse existente o creamos uno para Web)
+        // Asumimos rol "CLIENTE_WEB" para diferenciarlo en el frontend si es necesario
+        return new AuthResponse(token, cliente.getIdClienteWeb(), cliente.getNombre(), "CLIENTE_WEB");
+    }
+}

@@ -59,10 +59,11 @@ public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
                     // Permitimos la conexión WebSocket
                     .requestMatchers("/ws/**").permitAll()
                     
-                    // --- AGREGA ESTA LÍNEA ---
-                    // Permitir ver/descargar imágenes sin token
-                    .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/media/**").permitAll() 
+                   .requestMatchers("/ws/**").permitAll()
+                   .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/media/**").permitAll()
                     // -------------------------
+                    .requestMatchers("/api/web/auth/**").permitAll()
+
 
                     .requestMatchers(
                             "/v3/api-docs/**",
