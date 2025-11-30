@@ -43,8 +43,8 @@ public class PedidoMesa {
 
     public enum EstadoPedido {
         ABIERTO,
-        EN_COCINA, // <-- Podrías añadir este si quieres
-        LISTO_PARA_ENTREGAR, // <-- ESTADO NUEVO
+        EN_COCINA, 
+        LISTO_PARA_ENTREGAR, 
         CERRADO,
         CANCELADO
     }
