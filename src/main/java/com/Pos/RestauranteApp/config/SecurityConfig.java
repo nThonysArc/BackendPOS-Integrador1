@@ -53,18 +53,11 @@ public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
             .csrf(csrf -> csrf.disable())
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(authz -> authz
-                    // Permitimos el login
                     .requestMatchers("/api/auth/**").permitAll()
-
-                    // Permitimos la conexión WebSocket
                     .requestMatchers("/ws/**").permitAll()
-                    
                    .requestMatchers("/ws/**").permitAll()
                    .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/media/**").permitAll()
-                    // -------------------------
                     .requestMatchers("/api/web/auth/**").permitAll()
-
-
                     .requestMatchers(
                             "/v3/api-docs/**",
                             "/swagger-ui/**",
