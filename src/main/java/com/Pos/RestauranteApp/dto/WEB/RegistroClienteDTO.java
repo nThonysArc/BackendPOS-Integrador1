@@ -22,7 +22,10 @@ public class RegistroClienteDTO {
     @Size(min = 9, message = "El teléfono debe ser válido")
     private String telefono;
 
-    private String direccion; // Dirección principal inicial
+    private String direccion;
+    private Integer edad;
+    private String referenciaDireccion;
+
 
     public RegistroClienteDTO() {}
 
@@ -43,4 +46,9 @@ public class RegistroClienteDTO {
 
     public String getDireccion() { return direccion; }
     public void setDireccion(String direccion) { this.direccion = direccion; }
+    public Integer getEdad() { return edad; }
+    public void setEdad(Integer edad) { this.edad = edad; }
+
+    public String getReferenciaDireccion() { return referenciaDireccion; }
+    public void setReferenciaDireccion(String referenciaDireccion) { this.referenciaDireccion = referenciaDireccion; }
 }

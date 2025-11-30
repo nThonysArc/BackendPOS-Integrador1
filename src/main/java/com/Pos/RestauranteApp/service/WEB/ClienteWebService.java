@@ -42,14 +42,13 @@ public class ClienteWebService {
         cliente.setEmail(dto.getEmail());
         cliente.setTelefono(dto.getTelefono());
         cliente.setDireccionPrincipal(dto.getDireccion());
-        
-        // Encriptar contraseña
+        cliente.setEdad(dto.getEdad());
+        cliente.setReferenciaDireccion(dto.getReferenciaDireccion());
         cliente.setPassword(passwordEncoder.encode(dto.getPassword()));
 
-        ClienteWeb guardado = clienteRepository.save(cliente);
+    ClienteWeb guardado = clienteRepository.save(cliente);
 
-        // Auto-login después del registro: Generamos token
-        return generarRespuestaAuth(guardado);
+    return generarRespuestaAuth(guardado);
     }
 
     // --- LOGIN ---

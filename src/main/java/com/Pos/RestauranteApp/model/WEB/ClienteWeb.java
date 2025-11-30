@@ -33,6 +33,12 @@ public class ClienteWeb {
     @Column(length = 255)
     private String direccionPrincipal;
 
+    @Column(length = 3)
+    private Integer edad;
+
+    @Column(length = 255)
+    private String referenciaDireccion;
+
     // Constructores
     public ClienteWeb() {
     }
@@ -65,4 +71,9 @@ public class ClienteWeb {
 
     public String getDireccionPrincipal() { return direccionPrincipal; }
     public void setDireccionPrincipal(String direccionPrincipal) { this.direccionPrincipal = direccionPrincipal; }
+    public Integer getEdad() { return edad; }
+    public void setEdad(Integer edad) { this.edad = edad; }
+
+    public String getReferenciaDireccion() { return referenciaDireccion; }
+    public void setReferenciaDireccion(String referenciaDireccion) { this.referenciaDireccion = referenciaDireccion; }
 }
