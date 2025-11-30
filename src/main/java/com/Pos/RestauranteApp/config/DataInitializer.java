@@ -124,8 +124,8 @@ public class DataInitializer implements CommandLineRunner {
             Categoria entradasCalientes = categoriaRepository.save(new Categoria("Entradas Calientes", entradas));
             crearProducto("Papa Rellena", 8.0, entradasCalientes, "papa_rellena.jpg");
             crearProducto("Tamal Criollo", 6.0, entradasCalientes, "tamal_criollo.jpg");
-            crearProducto("Tamal Verde", 6.0, entradasCalientes, "tamal_verde.jpg");
-            crearProducto("Rocoto Relleno", 20.0, entradasCalientes, "rocoto_relleno.jpg");
+                crearProducto("Tamal Verde", 6.0, entradasCalientes, "tamal_verde.jpg");
+                crearProducto("Rocoto Relleno", 20.0, entradasCalientes, "rocoto_relleno.jpg");
             crearProducto("Chicharrón de Calamar", 22.0, entradasCalientes, "chicharron_calamar.jpg");
 
             Categoria sopas = categoriaRepository.save(new Categoria("Sopas y Cremas", entradas));
