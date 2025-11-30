@@ -3,6 +3,7 @@ package com.Pos.RestauranteApp.controller;
 import java.util.List;
 
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.CrossOrigin; // <-- IMPORTANTE
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -19,6 +20,7 @@ import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/productos")
+@CrossOrigin(origins = "*") // <--- ESTO ES LO QUE FALTABA. Sin esto, Angular no puede leer los datos.
 public class ProductoController {
 
     private final ProductoService productoService;
@@ -28,13 +30,11 @@ public class ProductoController {
     }
 
     @GetMapping
-    //@PreAuthorize("isAuthenticated()")
     public List<ProductoDTO> listar() {
         return productoService.listar();
     }
 
     @GetMapping("/{id}")
-    //@PreAuthorize("isAuthenticated()")
     public ProductoDTO obtenerPorId(@PathVariable Long id) {
         return productoService.obtenerPorId(id).orElse(null);
     }
@@ -44,6 +44,7 @@ public class ProductoController {
     public ProductoDTO guardar(@Valid @RequestBody ProductoDTO productoDTO) {
         return productoService.guardar(productoDTO);
     }
+    
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ProductoDTO actualizar(@PathVariable Long id, @Valid @RequestBody ProductoDTO productoDTO) {
@@ -56,5 +57,4 @@ public class ProductoController {
     public void eliminar(@PathVariable Long id) {
         productoService.eliminar(id);
     }
-
 }
