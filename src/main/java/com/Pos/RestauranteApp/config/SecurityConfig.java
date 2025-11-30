@@ -58,6 +58,9 @@ public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
                    .requestMatchers("/ws/**").permitAll()
                    .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/media/**").permitAll()
                     .requestMatchers("/api/web/auth/**").permitAll()
+                    .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/productos/**").permitAll()
+                    .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/categorias/**").permitAll()
+                    .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/media/**").permitAll()
                     .requestMatchers(
                             "/v3/api-docs/**",
                             "/swagger-ui/**",

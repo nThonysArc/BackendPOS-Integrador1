@@ -1,13 +1,21 @@
 package com.Pos.RestauranteApp.controller;
 
-import com.Pos.RestauranteApp.dto.ProductoDTO;
-import com.Pos.RestauranteApp.model.Producto;
-import com.Pos.RestauranteApp.service.ProductoService;
-import org.springframework.web.bind.annotation.*;
-import jakarta.validation.Valid;
-import org.springframework.security.access.prepost.PreAuthorize;
-
 import java.util.List;
+
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.Pos.RestauranteApp.dto.ProductoDTO;
+import com.Pos.RestauranteApp.service.ProductoService;
+
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/productos")
@@ -20,13 +28,13 @@ public class ProductoController {
     }
 
     @GetMapping
-    @PreAuthorize("isAuthenticated()")
+    //@PreAuthorize("isAuthenticated()")
     public List<ProductoDTO> listar() {
         return productoService.listar();
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("isAuthenticated()")
+    //@PreAuthorize("isAuthenticated()")
     public ProductoDTO obtenerPorId(@PathVariable Long id) {
         return productoService.obtenerPorId(id).orElse(null);
     }
