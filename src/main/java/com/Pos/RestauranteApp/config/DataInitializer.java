@@ -109,7 +109,7 @@ public class DataInitializer implements CommandLineRunner {
                 System.out.println("Buscando imágenes locales en: " + seedPath);
             }
 
-            // ================= ENTRADAS =================
+// ================= ENTRADAS =================
             Categoria entradas = categoriaRepository.save(new Categoria("Entradas", null));
 
             Categoria entradasFrias = categoriaRepository.save(new Categoria("Entradas Frías", entradas));
@@ -145,7 +145,7 @@ public class DataInitializer implements CommandLineRunner {
             crearProducto("Carapulcra", 25.0, criollos, "carapulcra.jpg");
 
             Categoria pescados = categoriaRepository.save(new Categoria("Pescados y Mariscos", carta));
-            crearProducto("Ceviche Clásico", 35.0, pescados, "ceviche.jpg");
+            crearProducto("Ceviche Clásico", 35.0, pescados, "ceviche_clasico.jpg");
             crearProducto("Jalea Mixta", 40.0, pescados, "jalea_mixta.jpg");
             crearProducto("Arroz con Mariscos", 38.0, pescados, "arroz_mariscos.jpg");
             crearProducto("Sudado de Pescado", 36.0, pescados, "sudado_pescado.jpg");
@@ -172,58 +172,57 @@ public class DataInitializer implements CommandLineRunner {
             crearProducto("Chanfainita", 15.0, guisos, "chanfainita.jpg");
 
             Categoria aves = categoriaRepository.save(new Categoria("Aves", fondo));
-            crearProducto("Milanesa de Pollo", 22.0, aves);
-            crearProducto("Pollo al Horno", 20.0, aves);
-            crearProducto("Escabeche de Pollo", 22.0, aves);
+            crearProducto("Milanesa de Pollo", 22.0, aves, "milanesa_pollo.jpg");
+            crearProducto("Pollo al Horno", 20.0, aves,"pollo_horno.jpg");
+            crearProducto("Escabeche de Pollo", 22.0, aves, "escabeche_pollo.jpg");
 
             Categoria carnes = categoriaRepository.save(new Categoria("Carnes Rojas", fondo));
-            crearProducto("Bistec a lo Pobre", 28.0, carnes);
-            crearProducto("Asado de Res", 25.0, carnes);
+            crearProducto("Bistec a lo Pobre", 28.0, carnes,"bistec-a-lo-pobre.jpg");
+            crearProducto("Asado de Res", 25.0, carnes,"asado-de-res.jpg");
 
             Categoria cerdo = categoriaRepository.save(new Categoria("Cerdo", fondo));
-            crearProducto("Adobo de Cerdo", 28.0, cerdo);
-            crearProducto("Chuleta frita", 24.0, cerdo);
+            crearProducto("Adobo de Cerdo", 28.0, cerdo,"adobo_cerdo.jpeg");
+            crearProducto("Chuleta frita", 24.0, cerdo,"chuleta-frita.jpg");
 
 
             // ================= BEBIDAS =================
             Categoria bebidas = categoriaRepository.save(new Categoria("Bebidas", null));
 
             Categoria refrescos = categoriaRepository.save(new Categoria("Refrescos Naturales", bebidas));
-            crearProducto("Chicha Morada (Jarra)", 15.0, refrescos);
-            crearProducto("Chicha Morada (Vaso)", 5.0, refrescos);
-            crearProducto("Limonada (Jarra)", 12.0, refrescos);
-            crearProducto("Maracuyá (Jarra)", 12.0, refrescos);
-            crearProducto("Emoliente frío", 4.0, refrescos);
+            crearProducto("Chicha Morada (Jarra)", 15.0, refrescos,"Chicha-morada-jarra.png");
+            crearProducto("Chicha Morada (Vaso)", 5.0, refrescos,"chicha-morada-vaso.jpg");
+            crearProducto("Limonada (Jarra)", 12.0, refrescos,"limonada-jarra.jpg");
+            crearProducto("Maracuyá (Jarra)", 12.0, refrescos,"maracuya-jarra.jpeg");
+            crearProducto("Emoliente frío", 4.0, refrescos,"emoliente-frio.jpg");
 
             Categoria gaseosas = categoriaRepository.save(new Categoria("Gaseosas y Aguas", bebidas));
             // Ejemplo: Asignando imagen a la Inka Cola
-            crearProducto("Inka Cola 500ml", 5.0, gaseosas, "inkacola.jpg");
-            crearProducto("Coca Cola 500ml", 5.0, gaseosas);
-            crearProducto("Agua con gas", 3.0, gaseosas);
-            crearProducto("Agua sin gas", 3.0, gaseosas);
+            crearProducto("Inka Cola 500ml", 5.0, gaseosas, "incakola-500.png");
+            crearProducto("Coca Cola 500ml", 5.0, gaseosas,"cocacola-500.jpg");
+            crearProducto("Agua con gas", 3.0, gaseosas,"agua-con-gas.jpg");
+            crearProducto("Agua sin gas", 3.0, gaseosas,"agua-sin-gas.jpg");
 
             Categoria cervezas = categoriaRepository.save(new Categoria("Cervezas", bebidas));
-            crearProducto("Pilsen", 8.0, cervezas);
-            crearProducto("Cusqueña Trigo", 10.0, cervezas);
-            crearProducto("Cusqueña Negra", 10.0, cervezas);
-            crearProducto("Cusqueña Dorada", 10.0, cervezas);
+            crearProducto("Pilsen", 8.0, cervezas,"pilsen.jpg");
+            crearProducto("Cusqueña Trigo", 10.0, cervezas,"cusqueña-trigo.jpg");
+            crearProducto("Cusqueña Negra", 10.0, cervezas,"cusqueña-negra.jpg");
+            crearProducto("Cusqueña Dorada", 10.0, cervezas,"cusqueña-dorada.jpg");
 
             Categoria cocteles = categoriaRepository.save(new Categoria("Cocteles y Vinos", bebidas));
-            crearProducto("Pisco Sour", 20.0, cocteles);
-            crearProducto("Chilcano", 18.0, cocteles);
-            crearProducto("Algarrobina", 18.0, cocteles);
-            crearProducto("Copa de Vino", 15.0, cocteles);
+            crearProducto("Pisco Sour", 20.0, cocteles,"pisco sour.jpg");
+            crearProducto("Chilcano", 18.0, cocteles,"chilcano.jpg");
+            crearProducto("Algarrobina", 18.0, cocteles,"algarrobina.jpg");
+            crearProducto("Copa de Vino", 15.0, cocteles,"vino.jpg");
 
             Categoria calientes = categoriaRepository.save(new Categoria("Infusiones y Calientes", bebidas));
-            crearProducto("Café pasado", 6.0, calientes);
-            crearProducto("Té", 4.0, calientes);
-            crearProducto("Anís", 4.0, calientes);
-            crearProducto("Manzanilla", 4.0, calientes);
+            crearProducto("Café pasado", 6.0, calientes,"cafe pasado.jpg");
+            crearProducto("Té", 4.0, calientes,"te.png");
+            crearProducto("Anís", 4.0, calientes,"anis.jpg");
+            crearProducto("Manzanilla", 4.0, calientes,"manzanilla.jpg");
 
             System.out.println("Menú inicializado correctamente.");
         }
     }
-
     // --- SOBRECARGA 1: Método antiguo (para compatibilidad con código existente) ---
     // Llama internamente al nuevo método pasando null como imagen
     private void crearProducto(String nombre, Double precio, Categoria categoria) {
