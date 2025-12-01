@@ -44,12 +44,12 @@ public class PedidoWeb {
     private List<DetallePedidoWeb> detalles;
 
     public enum EstadoPedidoWeb {
-        PENDIENTE,      
-        CONFIRMADO,     
-        EN_COCINA,      
-        EN_CAMINO,      
-        ENTREGADO,      
-        CANCELADO       
+        PENDIENTE,
+        EN_COCINA,
+        LISTO,     
+        EN_CAMINO,  
+        ENTREGADO,
+        CANCELADO      
     }
 
     // Getters y Setters

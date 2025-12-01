@@ -107,6 +107,32 @@ public class PedidoWebService {
                 .map(this::convertirADTO)
                 .collect(Collectors.toList());
     }
+    @Transactional
+    public PedidoWebDTO actualizarEstadoPedido(Long idPedido, String nuevoEstadoStr) {
+        // 1. Buscar el pedido
+        PedidoWeb pedido = pedidoWebRepository.findById(idPedido)
+                .orElseThrow(() -> new ResourceNotFoundException("Pedido Web no encontrado con ID: " + idPedido));
+
+        // 2. Validar y convertir el Enum
+        try {
+            EstadoPedidoWeb nuevoEstado = EstadoPedidoWeb.valueOf(nuevoEstadoStr.toUpperCase());
+            pedido.setEstado(nuevoEstado);
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("Estado no válido: " + nuevoEstadoStr);
+        }
+
+        // 3. Guardar cambios
+        PedidoWeb pedidoGuardado = pedidoWebRepository.save(pedido);
+        PedidoWebDTO dto = convertirADTO(pedidoGuardado);
+
+        // 4. Notificar vía WebSocket (Crucial para sincronización en tiempo real)
+        // Esto permite que si hay dos pantallas de cocina, ambas se actualicen, 
+        // o que la web del cliente sepa que su pedido va en camino.
+        WebSocketMessageDTO mensajeWS = new WebSocketMessageDTO("PEDIDO_WEB_ACTUALIZADO", dto);
+        messagingTemplate.convertAndSend("/topic/pedidos", mensajeWS);
+
+        return dto;
+    }
 
     // Mapeo Entidad -> DTO
     private PedidoWebDTO convertirADTO(PedidoWeb entidad) {

@@ -15,12 +15,38 @@ import com.Pos.RestauranteApp.model.WEB.ClienteWeb;
 import com.Pos.RestauranteApp.repository.WEB.ClienteWebRepository;
 import com.Pos.RestauranteApp.service.JwtService;
 
+import com.Pos.RestauranteApp.dto.WEB.RegistroClienteDTO; 
+import java.util.Optional;
+
 @Service
 public class ClienteWebService {
 
     private final ClienteWebRepository clienteRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
+
+    public ClienteWeb obtenerClientePorId(Long id) {
+        return clienteRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Cliente no encontrado"));
+    }
+
+    public ClienteWeb actualizarCliente(Long id, RegistroClienteDTO dto) {
+        ClienteWeb cliente = obtenerClientePorId(id);
+        
+        cliente.setNombre(dto.getNombre());
+        cliente.setApellidos(dto.getApellidos());
+        cliente.setTelefono(dto.getTelefono());
+        cliente.setDireccionPrincipal(dto.getDireccion());
+        cliente.setReferenciaDireccion(dto.getReferenciaDireccion());
+        cliente.setEdad(dto.getEdad());
+        
+        // Opcional: Actualizar password si viene en el DTO y no está vacío
+        if (dto.getPassword() != null && !dto.getPassword().isBlank()) {
+            cliente.setPassword(passwordEncoder.encode(dto.getPassword()));
+        }
+
+        return clienteRepository.save(cliente);
+    }
 
     public ClienteWebService(ClienteWebRepository clienteRepository, 
                              PasswordEncoder passwordEncoder, 
