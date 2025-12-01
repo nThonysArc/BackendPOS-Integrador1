@@ -35,8 +35,12 @@ public class WhatsAppService {
 
             Map<String, Object> body = new HashMap<>();
             body.put("messaging_product", "whatsapp");
+            
+            // CORRECCIÓN: Aseguramos el formato E.164 (con +) para el API de WhatsApp
+            String toNumero = numeroMotorizado.startsWith("+") ? numeroMotorizado : "+" + numeroMotorizado;
+            
             body.put("recipient_type", "individual");
-            body.put("to", numeroMotorizado);
+            body.put("to", toNumero); // Usamos el número corregido
             body.put("type", "text");
 
             Map<String, String> textContent = new HashMap<>();
@@ -47,7 +51,8 @@ public class WhatsAppService {
             
             // Envío
             restTemplate.postForEntity(apiUrl, request, String.class);
-            System.out.println("✅ WhatsApp enviado EXITOSAMENTE al: " + numeroMotorizado);
+            // Mostramos el número correcto en el log de éxito.
+            System.out.println("✅ WhatsApp enviado EXITOSAMENTE al: " + toNumero); 
 
         } catch (HttpClientErrorException e) {
             // ESTE ES EL BLOQUE QUE NOS DIRA LA VERDAD
