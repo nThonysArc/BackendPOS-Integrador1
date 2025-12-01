@@ -21,6 +21,7 @@ import com.Pos.RestauranteApp.model.WEB.PedidoWeb.EstadoPedidoWeb;
 import com.Pos.RestauranteApp.repository.ProductoRepository;
 import com.Pos.RestauranteApp.repository.WEB.ClienteWebRepository;
 import com.Pos.RestauranteApp.repository.WEB.PedidoWebRepository;
+import com.Pos.RestauranteApp.service.WhatsAppService;
 
 @Service
 public class PedidoWebService {
@@ -28,19 +29,22 @@ public class PedidoWebService {
     private final PedidoWebRepository pedidoWebRepository;
     private final ClienteWebRepository clienteWebRepository;
     private final ProductoRepository productoRepository;
-    private final SimpMessagingTemplate messagingTemplate; // ¡Para WebSockets!
+    private final SimpMessagingTemplate messagingTemplate;
+    private final WhatsAppService whatsAppService; // Inyección del servicio de WhatsApp
 
     public PedidoWebService(PedidoWebRepository pedidoWebRepository,
                             ClienteWebRepository clienteWebRepository,
                             ProductoRepository productoRepository,
-                            SimpMessagingTemplate messagingTemplate) {
+                            SimpMessagingTemplate messagingTemplate,
+                            WhatsAppService whatsAppService) { // Constructor actualizado
         this.pedidoWebRepository = pedidoWebRepository;
         this.clienteWebRepository = clienteWebRepository;
         this.productoRepository = productoRepository;
         this.messagingTemplate = messagingTemplate;
+        this.whatsAppService = whatsAppService;
     }
 
-    @Transactional // Importante para que todo se guarde o nada se guarde (Rollback)
+    @Transactional
     public PedidoWebDTO crearPedido(PedidoWebDTO dto) {
         // 1. Validar Cliente
         ClienteWeb cliente = clienteWebRepository.findById(dto.getIdClienteWeb())
@@ -50,14 +54,14 @@ public class PedidoWebService {
         PedidoWeb pedido = new PedidoWeb();
         pedido.setClienteWeb(cliente);
         pedido.setFechaHoraPedido(LocalDateTime.now());
-        pedido.setEstado(EstadoPedidoWeb.PENDIENTE); // Estado inicial para Cocina
+        pedido.setEstado(EstadoPedidoWeb.PENDIENTE);
         
         pedido.setDireccionEntrega(dto.getDireccionEntrega());
         pedido.setTelefonoContacto(dto.getTelefonoContacto());
         pedido.setReferencia(dto.getReferencia());
         pedido.setMetodoPago(dto.getMetodoPago());
 
-        // 3. Procesar Detalles y Calcular Totales Reales
+        // 3. Procesar Detalles
         List<DetallePedidoWeb> detallesEntidad = new ArrayList<>();
         double totalCalculado = 0.0;
 
@@ -69,8 +73,6 @@ public class PedidoWebService {
             detalle.setPedidoWeb(pedido);
             detalle.setProducto(producto);
             detalle.setCantidad(detDto.getCantidad());
-            
-            // Usamos el precio de la base de datos, NO el del JSON (seguridad)
             detalle.setPrecioUnitario(producto.getPrecio()); 
             
             double subtotal = producto.getPrecio() * detDto.getCantidad();
@@ -87,35 +89,56 @@ public class PedidoWebService {
         // 4. Guardar en BD
         PedidoWeb pedidoGuardado = pedidoWebRepository.save(pedido);
 
-        // 5. Convertir a DTO para respuesta y notificación
+        // 5. Convertir a DTO
         PedidoWebDTO respuestaDTO = convertirADTO(pedidoGuardado);
 
-        // 6. ¡NOTIFICACIÓN WEBSOCKET A LA COCINA!
-        // Enviamos al tópico '/topic/pedidosWeb' que escuchará el Frontend de Escritorio
+        // 6. Notificación WebSocket
         WebSocketMessageDTO mensajeWS = new WebSocketMessageDTO("NUEVO_PEDIDO_WEB", respuestaDTO);
         messagingTemplate.convertAndSend("/topic/pedidos", mensajeWS); 
-        // Nota: Reutilizo "/topic/pedidos" para simplificar la conexión en el frontend, 
-        // pero con un 'type' diferente ("NUEVO_PEDIDO_WEB") para que el Dashboard sepa qué hacer.
+        
+        // 7. --- NOTIFICACIÓN WHATSAPP (Nueva implementación) ---
+        // Construimos el mensaje para el motorizado
+        String mensajeMotorizado = String.format(
+            "🛵 *NUEVO PEDIDO EN PREPARACIÓN* (ID: %d)\n\n" +
+            "👤 *Cliente:* %s %s\n" +
+            "📞 *Teléfono:* %s\n" +
+            "📍 *Dirección:* %s\n" +
+            "📝 *Referencia:* %s\n" +
+            "💰 *Método Pago:* %s\n\n" +
+            "El pedido se está preparando en cocina. Mantente atento para el despacho.",
+            pedidoGuardado.getIdPedidoWeb(),
+            cliente.getNombre(), (cliente.getApellidos() != null ? cliente.getApellidos() : ""),
+            pedido.getTelefonoContacto(), // Usamos el de contacto del pedido, que puede ser distinto al del perfil
+            pedido.getDireccionEntrega(),
+            pedido.getReferencia(),
+            pedido.getMetodoPago()
+        );
+        
+        // Ejecutamos en un hilo separado para no bloquear la respuesta al usuario web si WhatsApp tarda
+        new Thread(() -> whatsAppService.enviarMensajeAlMotorizado(mensajeMotorizado)).start();
 
         return respuestaDTO;
     }
     
-    // Método auxiliar para listar pedidos activos (para la pantalla de cocina al iniciar)
     public List<PedidoWebDTO> listarPedidosPendientes() {
         List<EstadoPedidoWeb> estadosActivos = List.of(EstadoPedidoWeb.PENDIENTE, EstadoPedidoWeb.EN_COCINA);
         return pedidoWebRepository.findByEstadoIn(estadosActivos).stream()
                 .map(this::convertirADTO)
                 .collect(Collectors.toList());
     }
+
     @Transactional
     public PedidoWebDTO actualizarEstadoPedido(Long idPedido, String nuevoEstadoStr) {
         // 1. Buscar el pedido
         PedidoWeb pedido = pedidoWebRepository.findById(idPedido)
                 .orElseThrow(() -> new ResourceNotFoundException("Pedido Web no encontrado con ID: " + idPedido));
 
+        EstadoPedidoWeb estadoAnterior = pedido.getEstado();
+
         // 2. Validar y convertir el Enum
+        EstadoPedidoWeb nuevoEstado;
         try {
-            EstadoPedidoWeb nuevoEstado = EstadoPedidoWeb.valueOf(nuevoEstadoStr.toUpperCase());
+            nuevoEstado = EstadoPedidoWeb.valueOf(nuevoEstadoStr.toUpperCase());
             pedido.setEstado(nuevoEstado);
         } catch (IllegalArgumentException e) {
             throw new IllegalArgumentException("Estado no válido: " + nuevoEstadoStr);
@@ -125,17 +148,29 @@ public class PedidoWebService {
         PedidoWeb pedidoGuardado = pedidoWebRepository.save(pedido);
         PedidoWebDTO dto = convertirADTO(pedidoGuardado);
 
-        // 4. Notificar vía WebSocket (Crucial para sincronización en tiempo real)
-        // Esto permite que si hay dos pantallas de cocina, ambas se actualicen, 
-        // o que la web del cliente sepa que su pedido va en camino.
+        // 4. Notificar vía WebSocket
         WebSocketMessageDTO mensajeWS = new WebSocketMessageDTO("PEDIDO_WEB_ACTUALIZADO", dto);
         messagingTemplate.convertAndSend("/topic/pedidos", mensajeWS);
+
+        // 5. --- NOTIFICACIÓN WHATSAPP AL DESPACHAR ---
+        // Si el estado cambia a EN_CAMINO (que asumo es lo que pasa al dar "Despachar"), avisamos
+        if (nuevoEstado == EstadoPedidoWeb.EN_CAMINO && estadoAnterior != EstadoPedidoWeb.EN_CAMINO) {
+            String mensajeListo = String.format(
+                "🚀 *PEDIDO LISTO PARA DESPACHO* (ID: %d)\n\n" +
+                "El pedido está empaquetado y listo para salir.\n" +
+                "📍 *Destino:* %s",
+                pedido.getIdPedidoWeb(),
+                pedido.getDireccionEntrega()
+            );
+            new Thread(() -> whatsAppService.enviarMensajeAlMotorizado(mensajeListo)).start();
+        }
 
         return dto;
     }
 
-    // Mapeo Entidad -> DTO
+    // ... (El resto del método convertirADTO sigue igual) ...
     private PedidoWebDTO convertirADTO(PedidoWeb entidad) {
+        // (Tu código existente aquí)
         PedidoWebDTO dto = new PedidoWebDTO();
         dto.setIdPedidoWeb(entidad.getIdPedidoWeb());
         dto.setIdClienteWeb(entidad.getClienteWeb().getIdClienteWeb());
