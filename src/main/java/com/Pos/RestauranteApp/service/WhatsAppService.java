@@ -8,6 +8,7 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.HttpClientErrorException; // Importante
 import org.springframework.web.client.RestTemplate;
 
 @Service
@@ -25,6 +26,8 @@ public class WhatsAppService {
     private final RestTemplate restTemplate = new RestTemplate();
 
     public void enviarMensajeAlMotorizado(String mensajeTexto) {
+        System.out.println(">>> Intentando enviar WhatsApp a: " + numeroMotorizado);
+        
         try {
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
@@ -44,10 +47,15 @@ public class WhatsAppService {
             
             // Envío
             restTemplate.postForEntity(apiUrl, request, String.class);
-            System.out.println("✅ WhatsApp enviado al: " + numeroMotorizado);
+            System.out.println("✅ WhatsApp enviado EXITOSAMENTE al: " + numeroMotorizado);
 
+        } catch (HttpClientErrorException e) {
+            // ESTE ES EL BLOQUE QUE NOS DIRA LA VERDAD
+            System.err.println("❌ ERROR API FACEBOOK: " + e.getStatusCode());
+            System.err.println("📩 DETALLE DEL ERROR: " + e.getResponseBodyAsString());
         } catch (Exception e) {
-            System.err.println("❌ Error WhatsApp: " + e.getMessage());
+            System.err.println("❌ Error General WhatsApp: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 }
