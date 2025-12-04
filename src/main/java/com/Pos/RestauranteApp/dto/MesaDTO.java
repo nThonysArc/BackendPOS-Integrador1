@@ -1,42 +1,46 @@
 package com.Pos.RestauranteApp.dto;
 
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Positive;
 
 public class MesaDTO {
-
     private Long idMesa;
-
-    @NotNull(message = "El número de mesa no puede ser nulo")
-    private Integer numeroMesa;
-
-    @NotNull(message = "La capacidad no puede ser nula")
-    @Positive(message = "La capacidad debe ser un número positivo")
-    private Integer capacidad;
-
-    @NotBlank(message = "El estado no puede estar vacío")
+    @NotNull private Integer numeroMesa;
+    @NotNull private Integer capacidad;
     private String estado;
+    
+    // Campos visuales
+    private Double posX;
+    private Double posY;
+    private Double width;
+    private Double height;
+    private Double rotation;
+    private String forma;
+    private String tipo;
+
     public MesaDTO() {}
 
-    // Constructor completo
-    public MesaDTO(Long idMesa, Integer numeroMesa, Integer capacidad, String estado) {
-        this.idMesa = idMesa;
-        this.numeroMesa = numeroMesa;
-        this.capacidad = capacidad;
-        this.estado = estado;
-    }
-
-    // Getters y Setters
+    // Getters y Setters 
     public Long getIdMesa() { return idMesa; }
     public void setIdMesa(Long idMesa) { this.idMesa = idMesa; }
-
     public Integer getNumeroMesa() { return numeroMesa; }
     public void setNumeroMesa(Integer numeroMesa) { this.numeroMesa = numeroMesa; }
-
     public Integer getCapacidad() { return capacidad; }
     public void setCapacidad(Integer capacidad) { this.capacidad = capacidad; }
-
     public String getEstado() { return estado; }
     public void setEstado(String estado) { this.estado = estado; }
+    
+    public Double getPosX() { return posX; }
+    public void setPosX(Double posX) { this.posX = posX; }
+    public Double getPosY() { return posY; }
+    public void setPosY(Double posY) { this.posY = posY; }
+    public Double getWidth() { return width; }
+    public void setWidth(Double width) { this.width = width; }
+    public Double getHeight() { return height; }
+    public void setHeight(Double height) { this.height = height; }
+    public Double getRotation() { return rotation; }
+    public void setRotation(Double rotation) { this.rotation = rotation; }
+    public String getForma() { return forma; }
+    public void setForma(String forma) { this.forma = forma; }
+    public String getTipo() { return tipo; }
+    public void setTipo(String tipo) { this.tipo = tipo; }
 }
