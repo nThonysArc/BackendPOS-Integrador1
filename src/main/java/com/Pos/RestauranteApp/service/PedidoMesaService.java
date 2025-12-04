@@ -303,8 +303,6 @@ public class PedidoMesaService {
         PedidoMesa pedidoActualizado = pedidoMesaRepository.save(pedido);
 
         PedidoMesaDTO respuestaDTO = convertirADTO(pedidoActualizado);
-
-        // CAMBIO: Enviar objeto completo con tipo de evento
         messagingTemplate.convertAndSend("/topic/pedidos", 
             new WebSocketMessageDTO("PEDIDO_LISTO", respuestaDTO));
 

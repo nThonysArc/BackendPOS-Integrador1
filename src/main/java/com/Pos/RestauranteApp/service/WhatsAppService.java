@@ -8,7 +8,7 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.HttpClientErrorException; // Importante
+import org.springframework.web.client.HttpClientErrorException; 
 import org.springframework.web.client.RestTemplate;
 
 @Service
@@ -40,7 +40,7 @@ public class WhatsAppService {
             String toNumero = numeroMotorizado.startsWith("+") ? numeroMotorizado : "+" + numeroMotorizado;
             
             body.put("recipient_type", "individual");
-            body.put("to", toNumero); // Usamos el número corregido
+            body.put("to", toNumero); 
             body.put("type", "text");
 
             Map<String, String> textContent = new HashMap<>();
@@ -48,14 +48,10 @@ public class WhatsAppService {
             body.put("text", textContent);
 
             HttpEntity<Map<String, Object>> request = new HttpEntity<>(body, headers);
-            
-            // Envío
             restTemplate.postForEntity(apiUrl, request, String.class);
-            // Mostramos el número correcto en el log de éxito.
             System.out.println("✅ WhatsApp enviado EXITOSAMENTE al: " + toNumero); 
 
         } catch (HttpClientErrorException e) {
-            // ESTE ES EL BLOQUE QUE NOS DIRA LA VERDAD
             System.err.println("❌ ERROR API FACEBOOK: " + e.getStatusCode());
             System.err.println("📩 DETALLE DEL ERROR: " + e.getResponseBodyAsString());
         } catch (Exception e) {

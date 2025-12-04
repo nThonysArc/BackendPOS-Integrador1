@@ -153,7 +153,6 @@ public class PedidoWebService {
         messagingTemplate.convertAndSend("/topic/pedidos", mensajeWS);
 
         // 5. --- NOTIFICACIÓN WHATSAPP AL DESPACHAR ---
-        // Si el estado cambia a EN_CAMINO (que asumo es lo que pasa al dar "Despachar"), avisamos
         if (nuevoEstado == EstadoPedidoWeb.EN_CAMINO && estadoAnterior != EstadoPedidoWeb.EN_CAMINO) {
             String mensajeListo = String.format(
                 "🚀 *PEDIDO LISTO PARA DESPACHO* (ID: %d)\n\n" +
@@ -167,10 +166,7 @@ public class PedidoWebService {
 
         return dto;
     }
-
-    // ... (El resto del método convertirADTO sigue igual) ...
     private PedidoWebDTO convertirADTO(PedidoWeb entidad) {
-        // (Tu código existente aquí)
         PedidoWebDTO dto = new PedidoWebDTO();
         dto.setIdPedidoWeb(entidad.getIdPedidoWeb());
         dto.setIdClienteWeb(entidad.getClienteWeb().getIdClienteWeb());
