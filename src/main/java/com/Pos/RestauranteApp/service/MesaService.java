@@ -43,17 +43,16 @@ public class MesaService {
         mesa.setNumeroMesa(mesaDTO.getNumeroMesa());
         mesa.setCapacidad(mesaDTO.getCapacidad());
         
-        // Convertir el String del DTO al Enum de la Entidad
+        // Convertir String a Enum con seguridad
         if (mesaDTO.getEstado() != null) {
             try {
                 mesa.setEstado(Mesa.EstadoMesa.valueOf(mesaDTO.getEstado()));
             } catch (IllegalArgumentException e) {
-                // Manejar caso donde envíen un estado inválido, o dejar el anterior
+                // Si el estado no es válido, se ignora o se podría lanzar excepción
             }
         }
 
-        // --- ACTUALIZACIÓN DE CAMPOS VISUALES (NUEVO) ---
-        // Usamos valores por defecto si vienen nulos para evitar NullPointerException
+        // --- ACTUALIZACIÓN DE CAMPOS VISUALES ---
         mesa.setPosX(mesaDTO.getPosX() != null ? mesaDTO.getPosX() : 0.0);
         mesa.setPosY(mesaDTO.getPosY() != null ? mesaDTO.getPosY() : 0.0);
         mesa.setWidth(mesaDTO.getWidth() != null ? mesaDTO.getWidth() : 80.0);
@@ -61,10 +60,25 @@ public class MesaService {
         mesa.setRotation(mesaDTO.getRotation() != null ? mesaDTO.getRotation() : 0.0);
         mesa.setForma(mesaDTO.getForma() != null ? mesaDTO.getForma() : "RECTANGLE");
         mesa.setTipo(mesaDTO.getTipo() != null ? mesaDTO.getTipo() : "MESA");
-        // ------------------------------------------------
+        // ----------------------------------------
 
         Mesa mesaActualizada = mesaRepository.save(mesa);
         return convertirADTO(mesaActualizada);
+    }
+
+    // MÉTODO AGREGADO: Necesario para que el controlador funcione
+    public MesaDTO cambiarEstado(Long id, String nuevoEstado) {
+        Mesa mesa = mesaRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Mesa no encontrada con id: " + id));
+        
+        try {
+            mesa.setEstado(Mesa.EstadoMesa.valueOf(nuevoEstado));
+        } catch (IllegalArgumentException e) {
+             throw new IllegalArgumentException("Estado de mesa inválido: " + nuevoEstado);
+        }
+
+        Mesa actualizada = mesaRepository.save(mesa);
+        return convertirADTO(actualizada);
     }
 
     public void eliminarMesa(Long id) {
@@ -73,7 +87,7 @@ public class MesaService {
         mesaRepository.delete(mesa);
     }
 
-    // --- MÉTODOS DE CONVERSIÓN ACTUALIZADOS ---
+    // --- MÉTODOS DE CONVERSIÓN ---
 
     private MesaDTO convertirADTO(Mesa mesa) {
         MesaDTO dto = new MesaDTO();
@@ -82,7 +96,7 @@ public class MesaService {
         dto.setCapacidad(mesa.getCapacidad());
         dto.setEstado(mesa.getEstado().toString());
 
-        // Mapeo de nuevos campos visuales (Entidad -> DTO)
+        // Mapeo Visual
         dto.setPosX(mesa.getPosX());
         dto.setPosY(mesa.getPosY());
         dto.setWidth(mesa.getWidth());
@@ -107,7 +121,7 @@ public class MesaService {
             }
         }
 
-        // Mapeo de nuevos campos visuales (DTO -> Entidad)
+        // Mapeo Visual (DTO -> Entidad)
         mesa.setPosX(dto.getPosX() != null ? dto.getPosX() : 0.0);
         mesa.setPosY(dto.getPosY() != null ? dto.getPosY() : 0.0);
         mesa.setWidth(dto.getWidth() != null ? dto.getWidth() : 80.0);

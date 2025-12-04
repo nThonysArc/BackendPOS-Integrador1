@@ -4,18 +4,9 @@ import java.util.List;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.Pos.RestauranteApp.dto.MesaDTO;
-import com.Pos.RestauranteApp.exception.ResourceNotFoundException;
 import com.Pos.RestauranteApp.service.MesaService;
 
 import jakarta.validation.Valid;
@@ -34,34 +25,36 @@ public class MesaController {
     @GetMapping
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<List<MesaDTO>> listar() {
-        return ResponseEntity.ok(mesaService.listar());
+        // CORRECCIÓN: Usar el nuevo nombre 'getAllMesas'
+        return ResponseEntity.ok(mesaService.getAllMesas());
     }
 
     @GetMapping("/{id}")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<MesaDTO> obtenerPorId(@PathVariable Long id) {
-        MesaDTO mesa = mesaService.obtenerPorId(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Mesa no encontrada con id: " + id));
-        return ResponseEntity.ok(mesa);
+        // CORRECCIÓN: El servicio ya lanza la excepción si no existe, no hace falta .orElseThrow aquí
+        return ResponseEntity.ok(mesaService.getMesaById(id));
     }
 
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<MesaDTO> crear(@Valid @RequestBody MesaDTO mesaDTO) {
-        return ResponseEntity.ok(mesaService.guardar(mesaDTO));
+        // CORRECCIÓN: Usar 'crearMesa'
+        return ResponseEntity.ok(mesaService.crearMesa(mesaDTO));
     }
 
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<MesaDTO> actualizar(@PathVariable Long id, @Valid @RequestBody MesaDTO mesaDTO) {
-        mesaDTO.setIdMesa(id);
-        return ResponseEntity.ok(mesaService.guardar(mesaDTO));
+        // CORRECCIÓN: Usar 'actualizarMesa' y pasar ID explícitamente
+        return ResponseEntity.ok(mesaService.actualizarMesa(id, mesaDTO));
     }
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> eliminar(@PathVariable Long id) {
-        mesaService.eliminar(id);
+        // CORRECCIÓN: Usar 'eliminarMesa'
+        mesaService.eliminarMesa(id);
         return ResponseEntity.noContent().build();
     }
 
@@ -71,6 +64,7 @@ public class MesaController {
             @PathVariable Long id,
             @PathVariable String nuevoEstado
     ) {
+        // CORRECCIÓN: Aseguramos que este método exista en el servicio (ver abajo)
         return ResponseEntity.ok(mesaService.cambiarEstado(id, nuevoEstado));
     }
 }
